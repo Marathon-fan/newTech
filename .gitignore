@@ -13,6 +13,34 @@
 **.log
 **/build/
 
+################################### node ignored files  
 
+# compiled output
+/dist
+/tmp
 
+# dependencies
+node_modules/
+/bower_components
 
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage/*
+/libpeerconnection.log
+npm-debug.log
+testem.log
+/typings
+*.pdf
+*.tmp
+
+# e2e
+/e2e/*.js
+/e2e/*.map
