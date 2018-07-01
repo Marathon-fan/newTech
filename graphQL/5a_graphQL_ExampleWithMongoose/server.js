@@ -26,8 +26,8 @@ app.use('/graphql', graphqlHTTP (req => ({
 app.post('/quotes', (req, res) => {
 	//Insert into TodoList Collection
 	var todoItem = new todo ({
-		itemId:1,
-		item:req.body.item,
+		itemId: Math.random(),
+		item: req.body.item,
 		completed: false
 	})
 
@@ -47,5 +47,4 @@ app.listen(3000, () => {
 
 app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/index.html')
-
 });

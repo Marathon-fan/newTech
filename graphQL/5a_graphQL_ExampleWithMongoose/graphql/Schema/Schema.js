@@ -21,7 +21,6 @@ const {
 
 const ToDoMongo = require('../../mongoose/todo')
 
-
 /**
  * generate projection object for mongoose
  * @param  {Object} fieldASTs
