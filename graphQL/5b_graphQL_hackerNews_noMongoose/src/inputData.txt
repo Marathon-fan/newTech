@@ -1,0 +1,11 @@
+
+mutation {
+  createLink(
+    url: "http://xxxx/xxx",
+    description: "Best ",
+  ) {
+    id
+    url
+    description
+  }
+}
