@@ -94,4 +94,10 @@ TypeSystemDefinition:
 ## Scalar   
 A scalar represents a primitive value, like a string or an integer. Oftentimes, the possible responses for a scalar field are enumerable. GraphQL offers an Enum type in those cases, where the type specifies the space of valid responses.    
 
+## IDL   
+Interface Definition Language (IDL)
+
+## fragment, interface and union   
+
+
 
