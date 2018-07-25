@@ -1,0 +1,201 @@
+
+
+////-----------------------------------
+
+1 rule based approach
+
+2 
+
+
+////-----------------------------------
+
+Machine learning approach is similar to human-learning approach
+
+Machine Learning-A computer program/system that can learn from "experience"
+
+experience in computer is actural data
+
+////-----------------------------------Knowing when to use Machine learning
+
+how to travel from point A in map to point B
+1 rule based
+2 machine learning based approach
+
+
+1 rule based approach
+1)These rules are identified manually after a lot of research
+2)rules are static
+3)they change really slowly over time
+4)any changes are made by human analysts
+
+Traffic patterns on the other hand are dynamic
+
+2 machine learning based approach
+three steps:
+1) collect a large amount of traffic data
+2) use an algorithm to identify the relationship between the data and commute time
+3) update this relationship continuously with new data
+
+The difference between Rule based approach and ML based Approach is:
+1) we need to change rules automatically in Rule based approach
+2) rules are updated automatically based on data
+
+
+
+
+////-----------------------------------
+When to use Machine Learning!!!!!!!!!!!!!!!!
+1 difficult for humans to express rules
+2 a large amount of historical data is available
+3 patterns/relationships are dynamic
+
+
+////-----------------------------------
+understanding the machine learning process
+1 pick your problem
+identify which type of problem we need to solve
+ML problems generally fall under one of the following 4 categories:
+1) classification
+sentiment anaysis, spam detection
+2) regression
+sales forcasting
+predicting the value of stock market index
+3) clustering
+Clustering: is the assignment of a set of observations into subsets (called clusters) so that observations in the same cluster are similar in some
+sense. Clustering is a method of unsupervised learning, and a common technique for statistical data analysis used in many fields.
+4) recommendations
+product recommendations
+
+
+2 represent data
+represent data using numeric attributes
+Data might be in the form of unstructured text, images, videos
+Use meaningful numberic attributes to represent them
+
+3 apply an algorithm
+use a standard algorithm to find a model
+use an algorithm to find patterns from the historical data
+rules are meant to quantify relationships between variables
+the rules together form something called a Model
+
+a model can be 
+1) a mathematical equation
+2) a set of rules(if-then-else statements)
+
+The chioce of algorithm depends mainly on the type of problem
+1) classification
+(1)Naive Bayes
+(2)support vector machines
+
+2) clustering
+(1)K-means
+(2)Hierarchical clustering
+
+we can plug and play an algorithm
+
+We need to spend our time and energy in picking our problem and representing data, as there are many 
+plug-and-play algorithms.
+apply an algorithm could be a model of experimentation!!!!
+
+////-----------------------------------
+identifying the type of a machine learning problem
+
+typical ML Workflow
+1 pick your problem
+Picking the problem involves making a number of thoughtful choices
+
+///------
+Classification
+1) spam detection - is this email spam or Ham
+2) sentiment analysis - is this tweet positive or negative
+3) trading strategy - is this trading day going to be an up-day or down-day?
+
+problem instance
+an email/a tweet/ a trading day
+
+category:
+spam/ham
+postive/negative
+up-day/down-day
+
+classifier---uses a set of instances for which the correct category memership is known
+
+
+training data: tweets which are correctly classified as positive or negative
+
+///------
+regression
+example1:
+what will be the price of this stock on a given date?
+example2:
+how long will it take to commute from point A to point B?
+example3:
+what will be the sales of this product in a given week?
+
+in regression, we are computing a continuous value(stock price/ commute time/sales)
+
+we may assume the commute time depends on 
+1) time of day
+2) distance
+
+Regression also requires training data(historical datapoints)
+Like calculating commuting time:
+we need the following data: data, time of day, distance, commute time
+
+
+///------
+clustering
+
+say you have a large group of usrs for a social network
+Divide the users into groups based on some common attributes
+
+The key thing here is that the groups to be divided into are unknown beforehand(!!!!!) unlike classification
+
+The algorithm divides users into groups. later, we might realize that these groups represent meaningful divisions.
+for example, likes/dislikes, demographics
+
+///------
+recommendations
+1 what kind of artists will this user like?
+2 what are the top 10 book picks for this user?
+3 if a user buys this phone, what else will they buy?
+
+Based on a user's past behavoior, determine what else they might like or need
+
+Collaborative filtering
+
+
+
+
+2 represent data
+
+
+3 apply an algorithm
+
+
+
+
+
+////-----------------------------------summary
+spot applications of Machine Learning in the real world
+
+diferentiate between the different types of Machine learning problems
+
+pick your problem
+1 classify
+2 regress
+3 cluster
+4 recommend
+
+
+////-----------------------------------
+
+
+
+////-----------------------------------
+
+
+
+
+
+

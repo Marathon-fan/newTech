@@ -1,0 +1,90 @@
+Sentiment Labelled Sentences Data Set 
+Download: Data Folder, Data Set Description
+
+Abstract: The dataset contains sentences labelled with positive or negative sentiment.
+
+Data Set Characteristics:  
+
+Text
+
+Number of Instances:
+
+3000
+
+Area:
+
+N/A
+
+Attribute Characteristics:
+
+N/A
+
+Number of Attributes:
+
+N/A
+
+Date Donated
+
+2015-05-30
+
+Associated Tasks:
+
+Classification
+
+Missing Values?
+
+N/A
+
+Number of Web Hits:
+
+76618
+
+
+Source:
+
+Dimitrios Kotzias dkotzias '@' ics.uci.edu
+
+
+Data Set Information:
+
+This dataset was created for the Paper 'From Group to Individual Labels using Deep Features', Kotzias et. al,. KDD 2015 
+Please cite the paper if you want to use it :) 
+
+It contains sentences labelled with positive or negative sentiment. 
+
+======= 
+Format: 
+======= 
+sentence score 
+
+
+
+======= 
+Details: 
+======= 
+Score is either 1 (for positive) or 0 (for negative)	
+The sentences come from three different websites/fields: 
+
+imdb.com 
+amazon.com 
+yelp.com 
+
+For each website, there exist 500 positive and 500 negative sentences. Those were selected randomly for larger datasets of reviews. 
+We attempted to select sentences that have a clearly positive or negative connotaton, the goal was for no neutral sentences to be selected. 
+
+
+
+Attribute Information:
+
+The attributes are text sentences, extracted from reviews of products, movies, and restaurants
+
+
+Relevant Papers:
+
+'From Group to Individual Labels using Deep Features', Kotzias et. al,. KDD 2015
+
+
+
+Citation Request:
+
+'From Group to Individual Labels using Deep Features', Kotzias et. al,. KDD 2015

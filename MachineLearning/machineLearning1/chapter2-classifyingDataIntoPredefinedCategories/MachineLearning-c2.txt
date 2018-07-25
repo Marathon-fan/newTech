@@ -1,0 +1,188 @@
+
+////-----------------------------------
+
+classificiation - machine learning
+
+typical classification setup
+1 problem statement
+define the problem statement
+
+2 features
+represent the training data and test data using numerical attributes
+
+3 training 
+"train a model" using the training data
+
+4 test
+"Test the model" using test data
+
+
+algorithms for solving classification problems(plug and play)
+1 naive bayes
+2 support vector machines
+3 decision trees
+4 k-nearest neighbors
+5 random forest
+6 logistic regression
+
+////-----------------------------------detecting the gender of a customer
+
+Knowing demographic information like gender can help the business created targeted offers for specific customers
+
+The problem: Folks will often fill in just the mandatory fields
+
+only a fraction will fill out all the fields
+
+Let's set up the steps for gender detection
+
+1 problem - male or female(label)
+problem instance -- first name
+
+2 features
+we need to represent names using numeric attributes
+use characteristics that usually differentiate male and female names
+1) last letter is a vowel    (1 / 0)
+2) number of characters
+3) presence of prefixes/suffixes common to a specific gender
+
+3 training
+
+4 test
+
+////-----------------------------------classifying text on the basis of sentiment
+
+examples:
+1 What is the market sentiment around apple's latest product launch?
+2 how are voters feeling towards a particular candidate?
+3 what do customers think about a particular brand?
+
+sentiment analysis
+the data is:
+1 huge
+2 unstructrued
+3 semantically complicated
+4 freely and publickly available for anyone to analyse
+
+To paraphrase Bill Gates, any big dataset is a learning opportunity - use sentiment analysis to seize it
+
+negative / positive(identify8ng the polarity of a comment) - this is a classic example of a classification problem
+
+
+1 problem statement
+input: a comment
+output: positve / negative
+
+2 features
+1) creating a list representing the universe of all words that can appear in any text
+（w1, w2, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., wn）
+(hello, this, is, the, universe, of, all, words, in, any, text, a, an,test, goodbye)
+
+any text can then be represented using the frequencies of these words
+
+Hello, this is a test
+
+(1 ,1, 1, 0, 0, 0, 0, 0. 0. 0 ..... 1, 0, 1, 0)
+
+Term frequency Representation
+
+3 Training 
+use a comments dataset where comments are already labelled as positive/negative
+feed the data to any standard classification algorithm
+
+4 test
+test the model using text data
+
+
+////-----------------------------------deciding a trading strategy
+
+Quant Trading
+
+1 problem --
+classifier   -- a trading day is 
+1) a up day for a stock
+2) a down day for a stock
+
+2 features
+represent a trading day for a stock using numeric attributes
+1) day of the week(calendar feature)
+2) month of the year(calendar feature)
+3) price of the stock on previous days
+4) price of related stocks on previous days
+
+3 training
+financial data for the last 10 years
+represent each trading day as an up day or a down day for a stock
+feed the data to any standard classification algorithm 
+then go to training and test stages
+
+4 test
+
+
+
+////-----------------------------------detecing Ads
+let's say you want to build an ad-block extension for a browser
+
+The browser has to render a number of images
+
+1 problems statement
+image  -----> classifier ----> ad or non-ad?
+
+2 features
+1) height
+2) width
+3) page URL
+4) image URL
+5) page text
+6) iamge caption text
+
+for 3-6, they are text attributes, we can use a method like term frequency
+
+3 training 
+use an image dataset where images are already labelled as Ad/NonAd
+feed the data to any standard classification algorithm
+
+4 test
+
+
+////-----------------------------------customer behavior
+businesses ofthen study customer activity to draw insights
+
+1 customer churn
+Does a customer's behavior indicate that they will stop using our service in the future?
+1) problem instances: a customer
+2) labels: will repurchase / will not repurchase
+3) features: purchases, demographics, days since last purchase
+4) training data: a larget number of customers categorized as repurchased, did not repurchase
+
+
+
+2 fraud detection
+Does a customer's behavior indicate that they are committing payment fraud?
+1) problem instances: a payment
+2) labels: fraud / not fraud
+3) features: payment type, frequency of use, failed attempts in the last hour
+4) training data: a large number of historical transactions
+
+3 credit risk
+does a customer's behavior indicate that they are at risk of defaulting on their loan/payment?
+1) problem instances: a customter
+2) labels: will default payment, will not default payment
+3) features: income, education, employment sector, history of defaults
+4) training data: past customers labelled as defaulted/did not default
+
+Each of these can be set up as a classification problem
+
+
+Summary:
+1 recognize classification problems in different fields: from spam detection to quant trading
+2 set up all the elements of a classification problem: problem statement, features, labels
+
+
+////-----------------------------------
+
+
+
+
+////-----------------------------------
+
+
