@@ -1,0 +1,917 @@
+
+hairedorange@gmail.com
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Apache Kafka for Beginners - Learn Kafka by Hands-on
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+----------------------------------
+
+producers * n      ----------Kafka cluster--------  consumers * n
+
+
+//------zookeeper
+zookeeper monitors the health and metadata information about the brokers
+
+//------
+                          apache zookeeper
+                               |
+producers * n      ----------Kafka cluster--------  consumers * n
+
+
+----------------------------------download kafka
+/home/vagrant/Desktop/Development/kafka_2.12-0.11.0.1/
+
+//------kafka/config/zookeeper.properties
+
+//------kafka/config/server.properties
+
+//------
+
+//------
+
+----------------------------------bittiger course -- cs502-p-02 zookeeper
+1 what is consensus
+1) CAP theorem
+2) consistency model
+
+2 strong consistency algorithm
+1) Paxos
+2) Raft
+3) ZAB
+
+3 industry practice
+1) zookeeper
+2) etcd
+
+//------what is consistency
+CAP Theorem: for a distributed system, it cannot meet the following three qualities at the same time:
+1 consistency		----
+2 availability		----
+3 partition tolerance	---- suppose there five nodes-- 2 in China, 3 in US--
+
+Partition tolerance means that the system will continue working even if any number of messages sent between nodes is lost. This can be e.g. a network failure between two datacenters, where nodes in each datacenter form a partition. Also note that a failure of any number of nodes forms a partition (it is not possible to distinguish between a network failure and a node failing and stopping to respond to messages).
+
+Partition tolerance in CAP means tolerance to a network partition. An example of a network partition is when two nodes can't talk to each other, but there are clients able to talk to either one or both of those nodes. If you've ever used IRC and experienced a netsplit, this is a great example of that.
+Let's take an example. Suppose we have two node clusters(node A and B). And it is a key-value store. Say we already have a pair han_solo:dead
+Now consistency means no matter where you read it from (either node A or B) han is always dead.
+In case of partition tolerance, even if two nodes are not able to communicate, han should always be dead. (And to ensure that you may want to prevent him to be reborn until connection is back online between nodes, so in this case to provide consistency you are not accepting mutations)
+
+Don't think just about the existence of the cluster. That's easy. Remember that the cluster is also doing work, changing its internal state.
+Suppose that there are two nodes in the cluster, A and B. Suppose that they are partitioned from one another, and that A receives a request to add $100 to your bank account. What does it do? 
+Consistency requires that B know about the deposit. Availability means that the cluster can't shut down due to a problem, so the deposit must happen, but B can't be reached, so its state can't be updated.
+
+
+//------consistency model
+1 week consistency
+     eventual consistency
+        DNS(Domain Name System)
+        Gossip(the communication protocol for Cassandra)
+2 strong consistency
+     synchronization
+     Paxos 
+     Raft(multi-paxos)
+     ZAB(multi-paxos)
+
+google Spanner // highly recommended by many commercial users like banks around the world
+No-Compromise Relational Database Service
+Cloud Spanner is the world’s first fully managed relational database service to offer both strong consistency and horizontal scalability for mission-critical online transaction processing (OLTP) applications. With Cloud Spanner you enjoy all the traditional benefits of a relational database; but unlike any other relational database service, Cloud Spanner scales horizontally to hundreds or thousands of servers to handle the biggest transactional workloads.
+Customers across industries use Cloud Spanner for mission-critical use cases including:
+Powering customer authentication and provisioning for multi-national businesses
+Building consistent systems for transactions and inventory management in the financial services and retail industries
+Supporting high-volume systems that require low latency and high throughput in the advertising and media industries
+
+
+//------strong consistency
+Strong consistency is one of the consistency models used in the domain of the concurrent programming (e.g., in distributed shared memory, distributed transactions).
+The protocol is said to support strong consistency if:
+All accesses are seen by all parallel processes (or nodes, processors, etc.) in the same order (sequentially)
+Therefore, only one consistent state can be observed, as opposed to weak consistency, where different parallel processes (or nodes, etc.) can perceive variables in different states.
+
+problem:
+the data can not only exist in a single node
+
+how to be fault tolerence in a distribution system?
+Normally, we use state machine replication
+
+the consensus algorithm in state machine replication
+
+paxos is a kind of consensus algorithm. The system's eventual consistency means that a consensus, also the client's implementation
+
+//------master-slave(a strong consistency algorithm)     
+copy the data from master to slave
+step1 master write
+step2 master copy the log to slaves(for example, there are three slaves)
+step3 master waits until all the slaves return 
+
+problem:
+once a node fails, the master will be blocked and the whole cluster will not be useable. Consistency leading to low availability
+
+//------majority(a part of one strong consistency algorithms)  
+majority
+every time we write, we write to N/2 nodes, and each time we read, we read from more than N/2 nodes
+
+problem:
+in concurrency, it is impossible to ensure the system correctness. The consequence is signficant
+majority is not enough
+
+//------Paxos(a kind of strong consistency algorithms)
+Lesile Lamport, the inventor of Latex
+
+Paxos
+1 basci Paxos
+2 multi Paxos
+3 fast Paxos
+
+//------Basic Paxos
+1 Client: clients are outside of the system
+2 Propser: accepts the clients' request, and offer proposes to cluster. When conflicts occur, reconsile
+3 Acceptor(Voter): when there is Quorum(normally is set to majority), the propose will be accepted
+4 Learner: like an clerk. receive the accepted propose, backup
+
+acceptors are the most significant data nodes, learners are backup data nodes
+
+
+phases:
+1 Phase 1a: prepare
+    a propose with number n. Quorum, Please discuss the propose 
+2 Phase 1b: promise
+    if n is larger than all the accepted propose, then continue. or refuse
+3 Phase 2a: Accept
+    if majority, proposer will send detailed content: the number n, the detailed content of the propose
+4 Phase 2b: Accepted
+    if acceptor doesn't receiver any other propose with their numbers larger than N, then accept it, otherwise ingore it.
+
+work flow
+
+//------Basic Paxos' problem
+liveness or dueling
+How to solve? use a random timeout
+
+//------Multi Paxos
+basic Paxos' problem:
+1 diffcult to implement
+2 low efficiency(two rounds of RPC for each propose),
+
+new concept:
+Leader: the only proposer, all the request needs to be approved by the leader
+by using leader, only the election of leader need two rounds of RPC; after that, all the proposer will only need one round of RPC
+
+//------multi Pasos - future improvement
+reduce roles
+
+//------Raft(a kind of strong consistency algorithm)
+Raft-- three sub questions
+1 Leader Election
+2 Log Replication
+3 Safety
+
+redefine roles:
+1 leader
+2 follower
+3 candidate(temporary state, when leader fails)
+
+in Raft there are two timeout settings which control elections 
+
+There messages are sent in intervals specified by the heartbeat timeout
+
+This election term will continue until a follower stops receiving heartbeats and becomes a candidate
+
+
+Log replication
+
+
+raft.github.io
+
+//------consensus doesn't stand for absolute corretness
+there could be multiple results: success, failur, unknown
+
+
+//------ZAB(a strong consistency algorithm)
+pretty similar to Raft
+1 with regard to leader's term, ZAB uses epoch, raft calls it term  
+
+2 heartbeat direction: 
+ZAB: from followers to leader
+Raft: from leader to followers
+
+//------project practice
+1 Zookeeper cluster and command line operation
+2 Etcd cluster and restful api
+
+
+
+//------zookeeper
+/home/vagrant/Desktop/Development/zookeeper-3.4.10/
+
+1) use configuration file // each node should know all the formation of all nodes
+new a file: zookeeper/conf/zoo1.cfg,
+new a file: zookeeper/conf/zoo2.cfg,
+new a file: zookeeper/conf/zoo3.cfg,
+
+2) in dataDir=./data/zookeeper2, new a file called myid
+zoo1 myid content is 1
+zoo2 myid content is 2
+zoo3 myid content is 3
+
+3) start
+zookeeper $> bin/zkServer.sh start conf/zoo1.cfg
+zookeeper $> bin/zkServer.sh start conf/zoo2.cfg
+zookeeper $> bin/zkServer.sh start conf/zoo3.cfg
+
+4) see zookeeper's status
+zookeeper $> bin/zkServer.sh status conf/zoo1.cfg
+zookeeper $> bin/zkServer.sh status conf/zoo2.cfg
+zookeeper $> bin/zkServer.sh status conf/zoo3.cfg
+
+5) zookeeper is like a file system, and also a key-value store
+zookeeper $> bin/zkCli.sh -server 127.0.0.1:2181
+then we entered cli:
+zk> ls
+zk> help
+
+zk> create /test 111
+zk> get /test
+zk> create /test/test11 sss
+zk> get /test/test11
+
+then we quit
+zk> quit
+
+6) 
+zookeeper $> 
+
+
+//------rmEtcd         //Etcd is similar to zookeeper. Now, most programs use Etcd instead of zookeeper
+use docker file script //   ./runEtcd.sh
+
+use ./runEtcd.sh to run dockerfile, and setup 
+
+$> ./runEtcd.sh         // then three docker files start to run
+$> docker exec -it etcd1 /bin/sh
+
+then
+$> ETCDCTL_API usr/local/bin/etcdctl put test "test"    // specify the version
+
+$> export ETCDCTL_API = 3
+$> /usr/local/bin/etcdctl get test
+$> /usr/local/bin/etcdctl put test2 "aa"
+$> /usr/local/bin/etcdctl get test2
+$> docker ps
+$> ./rmEtcd.sh 
+
+// then all the corresponding processes will be removed
+rmEtcd.sh is like:
+docker stop etcd1
+docker rm etcd1
+
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------twitter to kafka
+scp
+scp allows files to be copied to, from, or between different hosts. 
+
+Example syntax for Secure Copy (scp)
+
+What is Secure Copy?
+
+scp allows files to be copied to, from, or between different hosts. It uses ssh for data transfer and provides the same authentication and same level of security as ssh.
+
+Examples
+
+Copy the file "foobar.txt" from a remote host to the local host
+
+$ scp your_username@remotehost.edu:foobar.txt /some/local/directory
+Copy the file "foobar.txt" from the local host to a remote host
+
+$ scp foobar.txt your_username@remotehost.edu:/some/remote/directory
+Copy the directory "foo" from the local host to a remote host's directory "bar"
+
+$ scp -r foo your_username@remotehost.edu:/some/remote/directory/bar
+Copy the file "foobar.txt" from remote host "rh1.edu" to remote host "rh2.edu"
+
+$ scp your_username@rh1.edu:/some/remote/directory/foobar.txt \
+your_username@rh2.edu:/some/remote/directory/
+Copying the files "foo.txt" and "bar.txt" from the local host to your home directory on the remote host
+
+$ scp foo.txt bar.txt your_username@remotehost.edu:~
+Copy the file "foobar.txt" from the local host to a remote host using port 2264
+
+$ scp -P 2264 foobar.txt your_username@remotehost.edu:/some/remote/directory
+Copy multiple files from the remote host to your current directory on the local host
+
+$ scp your_username@remotehost.edu:/some/remote/directory/\{a,b,c\} .
+$ scp your_username@remotehost.edu:~/\{foo.txt,bar.txt\} .
+scp Performance
+
+By default scp uses the Triple-DES cipher to encrypt the data being sent. Using the Blowfish cipher has been shown to increase speed. This can be done by using option -c blowfish in the command line.
+
+$ scp -c blowfish some_file your_username@remotehost.edu:~
+It is often suggested that the -C option for compression should also be used to increase speed. The effect of compression, however, will only significantly increase speed if your connection is very slow. Otherwise it may just be adding extra burden to the CPU. An example of using blowfish and compression:
+
+$ scp -c blowfish -C local_file your_username@remotehost.edu:~
+
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------twitter streaming -> spark streaming -> console 			OK
+
+DStream--is a continuous sequence of RDDs
+A Discretized Stream (DStream), the basic abstraction in Spark Streaming, is a continuous sequence of RDDs (of the same type) representing a continuous stream of data (see spark.RDD for more details on RDDs). DStreams can either be created from live data (such as, data from HDFS, Kafka or Flume) or it can be generated by transformation existing DStreams using operations such as map, window and reduceByKeyAndWindow. While a Spark Streaming program is running, each DStream periodically generates a RDD, either from live data or by transforming the RDD generated by a parent DStream.
+
+1 //------import the source files into the same package
+1) new a scala project, and inside it, make a pacage called: com.sundogsoftware.sparkstreaming
+2) import Utilities.scala and PrintTweets.scala into this package
+
+2 //------add jars
+1) add spark-hadoop/jars   // all the jars in spark installation directory
+2) add twitter4j-core-4.0.4.jar, twitter4j-stream-4.0.4.jar, spark-streaming-twitter_2.10-1.6.2  // can be downloaded from mvnrepo
+3) specify the same scala version that Spark uses:2.11 (right click project -> properties -> scala compiler -> scala Installation, then select lastest 2.11 bundle(dynamic)) . This is because we need to make our program's scala version the same as Spark's scala version.
+ Starting version 2.0, Spark is built with Scala 2.11.8 by default. Scala 2.10 users should download the Spark source package and build with Scala 2.10 support.
+
+3 //------
+in spark-hadoop/conf/
+rename log4j.properties.template to log4j.properties
+
+change log4j.properties' content:
+log4j.rootCategory=ERROR, console
+
+4 //------if you are using spark-core_2.11-2.2.0 
+download spark-core_2.10-1.2.1.jar and add it to project's dependency
+the spark-core_2.11-2.2.0 doesn't have org.apache.spark.Logging. 
+we need to add it by ourselves.
+
+5 //------apply for a twitter app api from https://apps.twitter.com, and put it in the context of twitter.txt
+consumerKey xx
+consumerSecret xx
+accessToken xx
+accessTokenSecret xx
+
+6 //------in eclipse->run -> run configurations,
+sepcifiy the Main class as "com.sundogsoftware.sparkstreaming.PrintTweets", the press "run"
+Finally, you will see an infinite stream(the twitter live stream) on your console, refreshed every one second.
+
+
+
+//------
+
+
+//------
+
+
+----------------------------------spark streaming -> Cassandra					OK	
+1 get the spark-Cassandra-connector package
+2 set spark.cassandra.connection.host in your SparkConf to the address of your Cassandra host
+3 use rdd.saveToCassandra to store tuples into named columns in a specific Cassandra talbe
+
+//------step 1: launch Cassandra
+
+spark-shell --packages datastax:spark-cassandra-connector:2.0.5-s_2.11      // I hope this can work! yes, this can work
+scala> sc.stop();   
+scala> import com.datastax.spark.connector._, org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf, org.apache.spark._
+scala> val conf = new SparkConf(true).set("spark.cassandra.connection.host", "localhost")
+scala> val sc = new SparkContext("local", "test", conf)
+scala> val test_spark_rdd = sc.cassandraTable("hr", "employee")
+scala> test_spark_rdd.foreach(println)
+
+//------
+
+//------save collections to Cassandra
+
+///////////////
+enter sqlsh:
+$> sqlsh
+
+in sqlsh:
+cqlsh> CREATE KEYSPACE SMACKTest WITH replication = {'class':'SimpleStrategy', 'replication_factor': 1};
+cqlsh> CREATE TABLE SMACKTest.tweetTest(id text PRIMARY KEY, content text);
+
+
+IN SCALA CODE:
+      rdd.saveToCassandra("SMACKTest", "tweetTest", SomeColumns("id", "content"))
+
+then in cqlsh
+cqlsh> select count(*) from SMACKTest.tweetTest;
+cqlsh> select * from SMACKTest.tweetTest;
+
+cqlsh> INSERT INTO SMACKTest.tweetTest(id, content) VALUES ('10000', 'a test tweet');
+
+///////////////
+cqlsh:
+cqlsh> describe keyspaces
+cqlsh> select * from system_schema.keyspaces;
+cqlsh> CREATE KEYSPACE SMACKTest WITH replication = {'class':'SimpleStrategy', 'replication_factor': 1};
+cqlsh> CREATE TABLE SMACKTest.tweetTest2(message_id text PRIMARY KEY, tweet_user_id text, tweet_user_name text, insert_date timestamp, content text);
+
+cqlsh> select count(*) from SMACKTest.tweetTest2;
+cqlsh> select * from SMACKTest.tweetTest2 LIMIT 500;
+
+cqlsh> DROP TABLE SMACKTest.tweetTest2;
+
+all keyspaces and tables use lowercase characters.
+
+//----
+
+cqlsh> CREATE TABLE SMACKTest.tweetTest1(tweet_id text PRIMARY KEY, insertion_time text, content text);
+
+cqlsh> select count(*) from SMACKTest.tweetTest1;
+cqlsh> select * from SMACKTest.tweetTest1;
+
+cqlsh> DROP TABLE SMACKTest.tweetTest1;
+
+
+//test
+cqlsh> CREATE TABLE SMACKTest.tweetTest1(tweet_id text PRIMARY KEY, content text);
+
+cqlsh> select count(*) from SMACKTest.tweetTest1;
+cqlsh> select * from SMACKTest.tweetTest1;
+
+cqlsh> DROP TABLE SMACKTest.tweetTest1;
+
+
+////////////////////////////////////////
+https://github.com/apache/bahir/tree/master/streaming-twitter/examples/src/main/scala/org/apache/spark/examples/streaming/twitter
+////////////////////////////////////////
+
+//------
+the command for Cassandra is quite like sql database, we create table and then insert data into the table.
+the only difference is that in Cassandra, we create keyspace first, then we create table under keyspace. for example, 
+cqlsh> CREATE KEYSPACE SMACKTest WITH replication = {'class':'SimpleStrategy', 'replication_factor': 1};
+cqlsh> CREATE TABLE SMACKTest.tweetTest(id text PRIMARY KEY, content text);
+
+"create keyspace" is like "create database" in sql database. But Cassandra is essentially a datacenter database, we can specify replication parameters-
+like class: 'SimpleStrategy' or 'NetworkTopologyStrategy',
+like the number of replicas of data on multiple nodes.
+These features are not provided by traditional database like mySQL.
+
+Cassandra can scale very easily, but it seems not to provide ACID transaction of traditional database. So we can see the tradeoff here
+
+//------
+In spark streaming, 
+
+we can create a stream with a time interval as the paramter, for example:
+    val ssc = new StreamingContext(conf, Seconds(10))// the stream will be refreshed every 10s
+then we can use some functions to deal with the stream's RDD, for example:
+val lines = tweets.map(status => status.getText())   
+    
+    val counter = new AtomicLong(0L);
+    // Extract the (IP, URL, status, useragent) tuples that match our schema in Cassandra
+    val requests = lines.map(x => {
+      (counter.incrementAndGet().toString(), x)
+    })
+    
+    // Now store it in Cassandra
+    requests.foreachRDD((rdd, time) => {
+      rdd.cache()
+      println("Writing " + rdd.count() + " rows to Cassandra")
+      rdd.saveToCassandra("smacktest", "tweettest", SomeColumns("id", "content"))
+    })
+
+then, we can specify checkpoint and start the process, for example:
+    ssc.checkpoint("/home/vagrant/Desktop/workspace/SMACK/SMACKremaster/output/")
+    ssc.start()
+    ssc.awaitTermination()
+
+If the stream is from a finite stream(like from a file), then the process will continue until the file is read completely.
+If the stream is from a infinite stream(like from twitter stream), then the process will continue until the user actively terminate the stream.
+In our example, we save the stream RDD into Cassandra database.
+
+
+----------------------------------create a standalone scala program(failed)
+step1:
+the project structure should be : 
+project -> src -> main -> scala -> scalaPackage and files
+
+step2:
+in the "project root/project"folder, create an assembly.sbt file that contains one line:
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.3")   // version may change
+
+step3:
+in the "project root" folder, create a build.sbt file:--------------
+name := "SMACKSample"
+
+version := "0.1"
+
+organization := "com.sundogsoftware"
+
+scalaVersion := "2.11.8"
+
+libraryDependencies ++= Seq(
+"org.apache.spark" %% "spark-core" % "1.6.1" % "provided",
+"org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
+"org.apache.spark" % "spark-core_2.10" % "2.1.0",
+"org.twitter4j" % "twitter4j-core" % "4.0.4",
+"org.twitter4j" % "twitter4j-stream" % "4.0.4",
+"org.apache.spark" % "spark-streaming-twitter_2.10" % "1.6.2",
+"com.datastax.cassandra" % "cassandra-driver-core" % "2.0.5",
+"com.twitter" % "jsr166e" % "1.1.0"
+)
+
+resolvers += "Spark Packages Repo" at "https://dl.bintray.com/spark-packages/maven"
+---------
+
+step4:
+then run:
+sbt assembly
+
+
+sbt compile
+sbt run
+sbt package
+
+$ scala target/scala-2.10/basic_2.10-1.0.jar
+Hello, world
+SBT commands
+
+
+sbt compile	
+Compiles source code files that are in src/main/scala, src/main/java, and the root directory of the project.
+
+sbt run	
+Compiles your code, and runs the main class from your project, in the same JVM as SBT. If your project has multiple main methods (or objects that extend App), you’ll be prompted to select one to run.
+
+sbt package
+Creates a JAR file (or WAR file for web projects) containing the files in src/main/scala, src/main/java, and resources in src/main/resources.
+
+
+----------------------------------createASparkStreamingFromCassandra, then put it into  kafka topic
+
+
+// createASparkStreamingFromCassandra, ------ succeeded!
+object ReadAndCreateStream { 
+  
+  def main(args: Array[String]) {   
+    
+    val conf = new SparkConf()
+    conf.set("spark.cassandra.connection.host", "127.0.0.1")
+    conf.setMaster("local[*]")
+    conf.setAppName("ReadAndCreateStream")
+    
+    val ssc = new StreamingContext(conf, Seconds(10))
+    
+    //rdd.saveToCassandra("smacktest", "tweettest", SomeColumns("id", "content"))
+    
+    //val max = ssc.cassandraTable("smacktest", "tweettest").select("count (*)" )
+    
+    val cassandraRDD = ssc.cassandraTable("smacktest", "tweettest").select("id", "content").limit(5)
+    //SELECT * FROM option_data WHERE ts=1 ORDER BY id DESC LIMIT N;
+
+    val dstream = new ConstantInputDStream(ssc, cassandraRDD)
+
+    dstream.foreachRDD{ rdd => 
+        // any action will trigger the underlying cassandra query, using collect to have a simple output
+        println("A new RDD-------------------rdd.count:" + rdd.count() + " rows")
+        println(rdd.collect.mkString("\n")) 
+    }
+    ssc.start()
+    ssc.awaitTermination()  
+  }  
+
+//------ put it into  kafka topic
+
+step1------start zookeeper
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/zookeeper-server-start.sh config/zookeeper.properties
+
+then the zookeeper server is running
+
+we can change zookeeper.properties in /home/vagrant/Development/kafka_2.12-0.11.0.1/config/zookeeper.properties
+
+
+//------start broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-SMACKRemaster.properties
+
+then the broker server is running
+
+we can change zookeeper.properties in /home/vagrant/Development/kafka_2.12-0.11.0.1/config/server.properties
+
+
+//------create a topic
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic SMACKRemaster
+
+then the topic is created
+
+cmd> ./bin/kafka-topics.sh --list --zookeeper localhost:2181  // list the topics
+
+//------start a producer									// use scala program as the producer		OK
+
+//------start a consumer									OK
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-producer.sh  --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic SMACKRemaster
+
+
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------kafkaConsumingSparkStream ------   front end visualization  --- Kafka REST Proxy?????
+
+The REST Proxy is an open source HTTP-based proxy for your Kafka cluster. The API supports many interactions with your cluster, including producing and consuming messages and accessing cluster metadata such as the set of topics and mapping of partitions to brokers. Just as with Kafka, it can work with arbitrary binary data, but also includes first-class support for Avro and integrates well with Confluent’s Schema Registry. And it is scalable, designed to be deployed in clusters and work with a variety of load balancing solutions.
+
+
+
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------kafka streaming to cassandra
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------cassandra streaming to spark streaming
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------sparking streaming to UI(console first, then Angular4 UI)
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+----------------------------------
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------error  sbt.librarymanagement.ResolveException: unresolved dependency: com.eed3si9n#sbt-assembly;0.14.3: not found
+//------Figured out the issue for me, I ran sbt -v and saw -Dsbt.override.build.repos=true
+
+I then checked sbt -help and found that it mentioned a file /usr/local/etc/sbtopts that adds some extra options to the runner. I removed the line with -Dsbt.override.build.repos=true and the resolver was able to find the plugin again.
+
+
+
+
+//------error java.lang.ClassNotFoundException: org.apache.spark.Logging
+
+org.apache.spark.Logging is available in Spark version 1.5.2 or lower version. It is not in the 2.0.0. Pls change versions as follows
+
+
+//------in scala, use the following code 
+  private var _value = new AtomicLong(initialValue)
+
+don't use 
+    AtomicLong counter = new AtomicLong(0L);
+
+
+//------error		java.lang.NoClassDefFoundError: com/twitter/jsr166e/LongAdder
+
+download jsr166e-1.1.0 from mvnrepo and add it to project dependency
+
+
+
+//------zsh profile -- edit
+
+The problem was in SPARK_HOME environment variable which wasn't defined on nodes
+
+export SPARK_HOME
+
+vi ~/.zshrc
+export SPARK_HOME=/home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/
+
+
+// -------------------------------sudo hostname -s 127.0.0.1
+//------
+
+//------
+
+//------
+
+//------
+
+// -------------------------------Spark Connector saveToCassandra() doesn't insert all records
+
+I'm trying to have the Spark Cassandra Connector save a large RDD of about 29,000~ records, however only 51 get inserted, every time.
+
+//------
+Just to give you an example of what Russell is talking about:
+
+
+Imagine you had this table:
+
+CREATE TABLE employee
+(
+  employee_id int,
+  first_name varchar,
+  last_name varchar,
+  country_code varchar,
+  PRIMARY KEY ( country_code)
+);
+
+
+Then let's say you do this insert:
+INSERT INTO employee ( employee_id, first_name, last_name, country_code ) VALUES ( 1, 'Joe', 'Smith', 'US' )
+If you query your table afterwards, you will have 1 record, and it will be the Joe Smith record.
+
+Now, let's say you do this insert:
+INSERT INTO employee ( employee_id, first_name, last_name, country_code ) VALUES ( 2, 'Bob', 'Jones', 'US' )
+If you query your table afterwards, you will *still* have 1 record, and it will be the Bob Jones record.
+
+Cassandra doesn't throw primary key violations.  It does upserts.
+The solution in this case is to recreate your table with a better primary key structure.  In this case, that would probably involve getting the employee_id field into the key, maybe like this:
+
+CREATE TABLE employee
+(
+
+  employee_id int,
+  first_name varchar,
+  last_name varchar,
+  country_code varchar,
+  PRIMARY KEY ( country_code, employee_id )
+);
+
+Jim
+
+//------
+Nvm my previous post, your mention of partition key got me looking into the right place.
+I just added partitionKeyColumns = Some(Seq("Order-ID", "Site-ID", "Page-ID")) to the createCassandraTable function and it works now.
+
+I'm extremely new and just fumbling around, throwing codes with hopes that they work.
+
+Thanks a bunch!
+
+//------
+
+//------
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------

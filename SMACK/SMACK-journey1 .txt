@@ -1,0 +1,2411 @@
+///////////////////////////////////////////////////////////////////////
+basically, cassandra can read from spark stream, and spark stream can write into cassandra
+a stream is something that refreshes every specific length of time ????
+
+///////////////////////////////////////////////////////////////////////
+
+
+----------------------------------Pipenv
+
+//------$ pip install --user pipenv
+
+export PATH="$PATH:/home/vagrant/.local/lib/python2.7/site-packages"
+
+//------$ cd myproject
+
+//------$ pipenv install requests
+
+//------
+
+
+----------------------------------
+
+The most common use of the export command is when defining the PATH shell variable:
+
+export PATH=$PATH:/usr/local/bin
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------cassandra
+
+//------sudo apt-get install build-essential python-dev
+
+
+//------
+
+//------
+
+//------
+
+
+----------------------------------download cassandra
+
+//------download cassandra from http://cassandra.apache.org/  
+
+echo "deb http://www.apache.org/dist/cassandra/debian 311x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+
+curl https://www.apache.org/dist/cassandra/KEYS | sudo apt-key add -
+
+sudo apt-get update
+
+sudo apt-get install cassandra
+
+
+----------------------------------cassandra basics
+
+//------storage model
+stores rows as key-value
+
+//------single row contains several columns
+column consists of a triplet(name, value, timestamp)
+
+//------way of storing data taken from google's Bigtable
+
+//------
+
+//------node activation
+1 Circular Stack- Ring
+2 multiple nodes
+3 identifier integer range
+4 parameterized
+5 sufficient data consistency
+6 synchronized the data
+7 timestamp records
+8 low-priority backend process
+
+----------------------------------Cassandra backup and compression
+
+//------incremental_backups
+
+
+in /etc/cassandra/cassandra.yaml, set:
+incremental_backups: true
+
+
+//------in cmd, use:
+nodetool snapshot -cf employee hr -t snapshotsample
+
+then we see backup data in /var/lib/cassandra/data    (the default dirctory)
+
+//------compression
+
+
+
+//------under cqlsh
+
+> CREATE KEYSPACE test WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
+> use test;
+
+> CREATE TABLE users (
+      id UUID,
+      name text,
+      email text,
+      country text,
+      birth_date timestamp,
+      PRIMARY KEY (id)
+    ) WITH compression = {'sstable_compression':'SnappyCompressor', 'chunk_length_kb':'64'};
+
+> DESCRIBE users;
+
+----------------------------------cassandar -- recovery techniques
+recovery techniques:
+1) restart node
+2) print schema
+
+CQL shell and CQL commands
+
+//------recovery with snapshot
+key space snapshot
+
+incremental backups
+
+multiple ways:
+1) SSTable loader tool
+2) Recreate Installation method
+
+
+//------printing schema
+CQL - Cassandra Qury Language
+
+queries on a keyspace
+
+
+
+//------
+
+//------
+
+
+----------------------------------Recovery Techniques, EDBMS Optimization, Bloom Filter and more
+
+normally, recovery is delete old file and put backup files into the data file folder
+
+//------Cassandra.yaml file
+use: 
+1) disk input or output
+2) memory
+3) CPU usage
+
+column_index_size_in_kb: 64
+commit_segment_size_in_mb: 32     	// the size of commit log file
+commitlog_sync: periodic		
+commitlog_sync_period_in_ms: 10000
+commitlog_total_space_in_mb: 8192
+
+//------Compact perheat key cache:
+1) initial value - true
+value range - true/false
+
+compaction_throughput_mb_per_sec: 16
+concurrent_compactors: 1
+concurrent_reads: 32
+concurrent_writes: 32
+concurrent_counter_writes: 32
+
+
+//------flush_largest_memtables_at:
+initial value - 64
+
+//------in_memory_compaction_limit_in_mb
+
+
+//------index_interval
+initial value: 128
+value range: 128 - 512
+
+//------memtable_flush_queue_size
+
+
+//------memtable_flush_writers: 8
+
+//------memtable_total_space_in_mb: 
+initial value :
+
+//------multithreaded_compaction:
+initial value: 
+
+//------reduce_cache_capacity_to:
+initial value - 0.6
+
+used in combination with reduce_cache_capacity_at
+
+//------reduce_cache_size_zt:
+initial value - 0.85
+
+//------stream_throught_outbound_megabits_per_sec: 200
+
+
+//-----------------bloom filter!!!
+order exists in the SS table
+
+higher bloom fitler value = less memory use
+
+range - 0.000744  to 1.0
+
+//------Data Cache
+two caches:
+key cache-- default enabled
+
+row cache-- default disabled
+
+working of the model:
+1 checks in the row cache
+2 row cache returns the result
+3 checks if data can be retrieved through the key cache
+4 retrieved data is finally writtent to the row cache
+5 positive impact on reading data for the column family
+
+
+6 key cache size is set in relation to the size Java heap
+7 data access patterns follow a normal distribution
+8 often-read data and queries
+
+
+//------use key_cache_size_in_mb to set key cache size
+
+//------key_cache_save_period: 14400    // default is four hours
+
+
+//------use row_cache_size_in_mb to set row cache size  (0 means disables)
+
+
+//------row_cache_save_period : 0 // 0 means disabled
+
+//------row_cache_provider    // implementation
+
+
+//------java heap    in cassandra-env.sh
+
+total amout 
+
+MAX_HEAP_SIZE  = ...
+
+HEAP_NEWSIZE = ...
+
+//------java Garbage Collection
+
+GC inspector - Collection
+
+add new nodes
+reduce caceh size
+adjusting items
+
+
+//------views, triggers and stored procedures
+view: 
+   virtual table act as real table
+   rows and column combination
+Select:
+    lists actual data
+RI Restrictions: set in application code
+
+there is no joint in cassandra(all values are key-value pair)
+
+//------cluster manager
+cannot create triggers and stored proceduers
+cannot apply Codd's rules
+
+//------Client-server architecture
+
+cannot apply Codd's rules
+
+cannot create triggers and stored proceduers
+1)service providers
+2)service petitioners(the clients)
+
+meet and handle request
+
+same data network
+
+CQL -- Connect to Cassandra
+
+//------Driver
+software component
+client for cassandra
+modern programming language
+client-server architecture
+
+//------
+
+
+//------
+
+
+----------------------------------The Spark Cassandra connector
+
+installation
+Establishing the connection
+using the connector
+
+//------
+storage layer
+designed specially for Spark
+
+//------spark-cassandra-connector
+
+https://github.com/datastax/spark-cassandra-connector
+
+mvn scripts:
+
+<!-- https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector_2.10 -->
+<dependency>
+    <groupId>com.datastax.spark</groupId>
+    <artifactId>spark-cassandra-connector_2.10</artifactId>
+    <version>2.0.4</version>
+</dependency>
+
+or:
+spark-shell --packages datastax:spark-cassandra-connector:2.0.5-s_2.11       // I hope this can work! yes, this can work
+spark-shell --packages datastax:spark-cassandra-connector:1.6.0-M2-s_2.10   // I hope this can work! yes, this can work
+
+//https://spark-packages.org/package/datastax/spark-cassandra-connector
+
+// locate spark-shell
+// export PATH=$PATH:/home/vagrant/Development/spark-2.2.0-bin-hadoop2.7/bin
+
+then 
+scala> sc.stop();   // don't use this code is OK
+scala> import com.datastax.spark.connector._, org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf
+scala> val sc = new SparkContext(conf)
+scala> val test_spark_rdd = sc.cassandraTable("hr", "employee")
+
+
+///////////////////////////////----------------------------------------- whole command list
+spark-shell --packages datastax:spark-cassandra-connector:2.0.5-s_2.11      // I hope this can work! yes, this can work
+scala> sc.stop();   
+scala> import com.datastax.spark.connector._, org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf, org.apache.spark._
+scala> val conf = new SparkConf(true).set("spark.cassandra.connection.host", "localhost")
+scala> val sc = new SparkContext("local", "test", conf)
+scala> val test_spark_rdd = sc.cassandraTable("hr", "employee")
+scala> test_spark_rdd.foreach(println)
+///////////////////////////////-----------------------------------------
+
+
+//------
+try this;
+
+The Spark Cassandra Connector
+
+To connect Spark to a Cassandra cluster, the Cassandra Connector will need to be added to the Spark project.  DataStax provides their own Cassandra Connector on GitHub and we will use that.
+
+Clone the Spark Cassandra Connector repository: https://github.com/datastax/spark-cassandra-connector
+cd into “spark-cassandra-connector”
+Build the Spark Cassandra Connector
+Execute the command “./sbt/sbt assembly”
+This should output compiled jar files to the directory named “target”.  There will be two jar files, one for Scala and one for Java.
+The jar we are interested in is: “spark-cassandra-connector-assembly-1.1.1-SNAPSHOT.jar” the one for Scala.
+Move the jar file into an easy to find directory:  I put mine into ~/apps/spark-1.2/jars
+
+//------
+
+
+//------
+
+
+//------
+
+
+----------------------------------Connectors - Spark, Cassandra and Akka
+
+//------introduction to Spark Cassandra connector
+
+Cassandra -- facebook
+Spark Cassandra Connector
+1 expose Cassandra tables as Spark RDDs
+2 Write Spark RDDs to Cassandra
+3 Execute CQL queries within Spark applications
+
+
+//------
+http://spark-packages.org
+
+
+//------
+
+//------
+
+
+// -------------------------------spark streaming
+//------open spark-shell
+export PATH=$PATH:/home/vagrant/Development/spark-2.2.0-bin-hadoop2.7/bin
+
+spark-shell --packages datastax:spark-cassandra-connector:2.0.5-s_2.11   
+
+//------import packages
+scala> import org.apache.spark._, org.apache.spark.streaming._, org.apache.spark.streaming.StreamingContext._, com.datastax.spark.connector.streaming._, com.datastax.spark.connector.cql.CassandraConnector
+
+//------
+scala> val conf = new SparkConf().setMaster("local[2]").setAppName("WordCount")
+scala> sc.stop()
+scala> val ssc = new StreamingContext(conf, Seconds(1))
+scala> val lines = ssc.socketTextStream("localhost", 9999)
+scala> val words = lines.flatMap(_.split(" "))
+scala> val pairs = words.map( word => (word, 1))
+scala> val counts = pairs.reduceByKey(_ + _)
+scala> counts.print()
+
+//------then use cqlsh to create cassandra tables
+cmd> cqlsh
+cqlsh> CREATE KEYSPACE streamingtest WITH replication = {'class':'SimpleStrategy', 'replication_factor': 1};
+cqlsh> CREATE TABLE streamingtest.words(word TEXT PRIMARY KEY, count COUNTER);
+cqlsh> 
+cqlsh> 
+cqlsh> 
+
+//------connect spark to cassandra.    make the output of spark connecting to cassandra instead of console
+
+scala> import com.datastax.spark.connector.streaming._
+scala> counts.saveToCassandra("streamingtest", "words")
+
+
+//------streaming context creation
+
+// we already used the following code to create streaming context
+scala> val ssc = new StreamingContext(conf, Seconds(1)) 
+
+
+//------create streams  // but this video didn't give implementation
+we can create TypedStreamingActor(pulls messages from an Akka), Kafka stream(pulls messages from a Kafka broker), 
+
+
+//------Functions with Cassandra
+scala> import com.datastax.spark.connector.streaming._
+
+
+//------write stream to Cassandra
+scala> import com.datastax.spark.connector._, org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf, org.apache.spark._
+
+scala> val wc = lines.flatMap(_.split("\\s+")).map(x => (x, 1)).reduceByKey(_ + _).saveToCassandra("streamingtest", "words", SomeColumns("word", "count"))
+
+scala> ssc.stop()
+scala> val sc = new SparkContext("local", "test", conf)
+scala> import com.datastax.spark.connector._;
+scala> val col = sc.parallelize(Seq(("key3", 3), ("key4", 4)))
+scala> col.saveToCassandra("testks", "kv", SomeColumns("key", "value"))
+
+// then we read the stream from cassandra  use cassandraTable()
+scala> val rdd = sc.cassandraTable("testks", "kv")
+scala> println(rdd.count)
+scala> println( rdd.first )
+scala> println( rdd.map(_.getInt("value")).sum )
+
+//------Saving RDDs to Cassandra
+pre-requisites:
+1) object class is a tuple
+2) property names correspond to Cassandra column names
+
+if the table already exists, then:
+1) import com.datastax.spark.connector
+2) call the saveToCassandra
+
+if we need to create new Table:
+call saveAsCassandraTable or saveAsCassandraTableEx
+
+//------go to cqlsh
+cqlsh> CREATE TABLE testks.words (word text PRIMARY KEY, count int);
+cqlsh> INSERT INTO testks.words(word, count) VALUES ('foo', 10);
+cqlsh> INSERT INTO testks.words(word, count) VALUES ('bar', 20);
+cqlsh> 
+
+//------go to spark
+scala> val collection = sc.parallelize(Seq(("cat", 30), ("dog", 40)))
+
+scala> import com.datastax.spark.connector._, org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf, org.apache.spark._
+
+scala> collection.saveToCassandra("testks", "words", SomeColumns("word", "count"))
+scala> 
+
+
+//------go to Seqsh
+
+cqlsh> select * from testks.words;
+
+//------mapper for tuples
+in spark:
+scala> collection.saveToCassandra("testks", "words", SomeColumns("word" as "_2", "count" as "_1"))
+
+//------save collections to Cassandra
+scala> case class WordCount(word: String, count: Long)
+scala> val collection = sc.parallelize(Seq(WordCount("fox", 50), WordCount("cow", 60)))
+scala> collection.saveToCassandra("testks", "words", SomeColumns("word", "count"))
+
+then in cqlsh
+cqlsh> select * from testks.words;
+
+
+
+
+//------modifying collection
+operations:
+1 append/add(lists, sets, maps)
+2 prepend(lists)
+3 remove(lists, sets) not supported for maps
+4 overwrite(lists, sets, maps)
+
+example:
+scala> val listElements = sc.parallelize(Seq(
+       | (1, Vector("One")),
+       | (1, Vector("Two")),
+       | (1, Vector("Three"))))
+
+scala> val preElements = sc.parallelize(Seq(
+       | (1, Vector("PreOne")),
+       | (1, Vector("PreTwo")),
+       | (1, Vector("PreThree"))))
+scala> listElements.saveToCassandra("testks", "collections_mod", SomeColumns("key", "list_col" append))
+scala> preElements.saveToCassandra("testks", "collections_mod", SomeColumns("key", "list_col" prepend))
+
+error---------===========
+warning: there was one feature warning; re-run with -feature for details
+java.io.IOException: Couldn't find testks.collections_mod or any similarly named keyspace and table pairs
+  at com.datastax.spark.connector.cql.Schema$.tableFromCassandra(Schema.scala:356)
+  at com.datastax.spark.connector.writer.TableWriter$.apply(TableWriter.scala:344)
+  at com.datastax.spark.connector.RDDFunctions.saveToCassandra(RDDFunctions.scala:35)
+  ... 82 elided
+
+
+scala> 
+scala> 
+scala> 
+scala> 
+
+//------
+
+scala> import com.datastax.spark.connector.types.CassandraOption 
+
+go to cqlsh
+
+cqlsh> CREATE TYPE testks.address (city text, street text, zip int);
+cqlsh> CREATE TABLE testks.companies (name text PRIMARY KEY, address FROZEN<address>);
+cqlsh> CREATE TABLE testks.udts (key text PRIMARY KEY, name text, addr FROZEN<ADDRESS>);
+cqlsh> CREATE TABLE testks.table1 (key INT, col_1 INT, col_2 INT, PRIMARY KEY (key));
+cqlsh> INSERT INTO testks.table1 (key, col_1, col_2) VALUES (1, null, 1);
+
+go to spark-shell:
+
+scala> sc.parallelize(1 to 6).map(x => (x, x, x)).saveToCassandra("testks", "table1")
+
+
+
+scala> val optionRdd = sc.parallelize(1 to 6).map(x => (x, None, None))
+scala> optionRdd.map { case (x: Int, y: Option[Int], z: Option[Int]) =>
+     | (x, CassandraOption.deleteIfNone(y),
+     | CassandraOption.unsetIfNone(z))}.saveToCassandra("testks", "table1");
+
+//????????????? 
+<console>:3: error: ')' expected but '.' found.
+     | CassandraOption.unsetIfNone(z))}.saveToCassandra("testks", "table1");
+                      ^
+<console>:3: error: ';' expected but ')' found.
+     | CassandraOption.unsetIfNone(z))}.saveToCassandra("testks", "table1");
+
+
+scala> val results = sc.cassandraTable[(Int, Option[Int],
+     | Option[Int])]("testks", "table1").collect
+scala> 
+scala> 
+
+//------Canoncial Spark Cassandra Cluster
+
+canonical
+kəˈnɒnɪk(ə)l/Submit
+adjective
+1.
+according to or ordered by canon law.
+"the canonical rites of the Roman Church"
+2.
+included in the list of sacred books officially accepted as genuine.
+"the canonical Gospels of the New Testament"
+
+
+//------Failure Handling 
+
+tune paramters:
+1 spark.locality.wait
+2 spark.locality.wait.process
+3 spark.locality.wait.node
+
+//------main (spark +  cassandra) use cases
+
+1 sanitize, validate, normalize, transform data
+2 load data from various sources
+3 schema migration, data conversion
+4 analytics(join, aggregate, transform, ..)
+
+//------Data cleaning use cases
+dirty input data
+bug = program spark job
+
+
+//------schema imgration use cases
+1 change in business requirements
+2 relevance inparts of cassandra schema
+3 imperfections in data model
+
+//------analysticas use cases
+computing analytics in real time
+
+
+// -------------------------------the Model - Akka
+Actor Model in a Nutshell
+1 life cycle
+2 actor communction
+
+1973 in MIT(Carl Hewitt, Peter Bishop and Richard Steiger)
+
+
+//------Actor Model
+Scala 	2003
+F+	2005
+Clojure	2007
+Elixir	2012
+
+Actor Model
+1 hihger abstraction level than thread
+2 programming threads - low-level problems
+  (1) locks
+  (2) semaphores
+  (3) shared data
+
+akka developer's blog --- letitcrash.com
+
+//------
+actors as people
+actor Model as a company
+actor's siblings as the people at same hierarchy level
+actor's children as an employee's subordinates
+one and only one supervisor
+delegation to subordinates is fundamental !!!
+
+//------Akka implementation
+1 create an actor, Akka gives the ActionRef to know its state
+2 actors run in real java threads
+3 actors share the same thread
+4 mailbox types:
+(1) unbounded
+(2) bounded
+(3) priority
+
+scan their mailboxes -> looking for specific messages -> dead letter mailbox(messages of terminated actors)
+
+//------let if crash approach
+options:
+1 resume the actor
+2 restart the actor
+3 terminate the actor
+4 send a message with the failure
+
+//------KATA 21
+unmanned Aerial Vehicle(UAV)
+save activator 1.3.12
+run through terminal or sbt
+
+//------in terminal
+cmd> activator ui
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+
+// -------------------------------Akka and Cassandra
+1 building a simple Akka application
+2 using Akka IO to make HTTP requests
+3 storing the data in Cassandra
+
+//------make sure cassandra is running
+sudo service cassandra status
+
+//------use cqlsh
+cqlsh>
+
+//------use another terminal 
+cmd> activator new AkkaCaddandraeg activator-akka-cassandra
+// AkkaCaddandraeg -- the name of the project
+// activator-akka-cassandra  -- the name of the template
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------The Broker - Apache Kafka
+1 Kafka producers and consumers
+2 Kafka integration with SMACK stack
+3 Apache Kafka administraion
+
+//------need for Kakfa
+1 optimaized for writing
+2 data delivered to multiple receivers
+3 integration required - information inaccessaible
+4 intergration macker
+
+
+//------Kakfa features
+1 message publishing
+2 message broker objectives;
+1) provide seamless integration
+2) not blokcing producers
+3) isolate producers and consumers
+
+3 open source
+
+4 distributed
+can grow cluster without affecting consumers
+
+
+5 partitoned
+
+6 high throughput
+hundreds of read write operations per second
+
+7 multiple clients - jvm, python, .net, php
+
+8 real time
+
+9 Commit Logs
+log aggregation
+collect physical files and puts them in a central place
+low latency
+supports multiple data sources
+
+10 messaging !!!
+1) most popular
+2) translate between systems
+
+11 record user activity
+
+12 stream processing(enterprise service bus)
+1) collecting information
+2) enriching it
+
+
+13 example:   -- data pipeline
+1) linkedin
+2) twitter
+3) netflix     --  backbone for 
+4) meetup
+
+
+//------installation
+1 install java
+2 install kafka
+3 import kakfa
+
+To set common path for ALL system users, you may need to set path like this :
+[root~]# echo "export PATH=$PATH:/path/to/dir" >> /etc/profile
+
+export PATH=$PATH:/home/vagrant/Development/scala-2.12.3/bin
+export PATH=$PATH:/home/vagrant/Development/spark-2.2.0-bin-hadoop2.7/bin
+
+echo "export PATH=$PATH:/home/vagrant/Development/scala-2.12.3/bin:/home/vagrant/Development/spark-2.2.0-bin-hadoop2.7/bin" >> /etc/profile
+
+
+//------install kafka
+1 download kafka
+2 extract it
+3 export KAFKA_HOME=/home/vagrant/Development/kafka_2.12-0.11.0.1
+4 export PATH=$KAFKA_HOME/bin
+5 import sbt
+use mvn/sbt/gradle etc..
+
+
+//------Cluster
+types of cluster
+1 single node - single broker
+2 single node - multiple broker
+3 multiple node - multiple broker
+
+//------Actors
+1 broker
+1) server process
+2) topics live on broker process
+
+2 topic
+1) queue or feed name
+2) partitioned
+3) message in a partition has a unique ID
+
+3 producer
+1) publish data to topic
+2) message allocation - round robin or custom
+
+4 consumer
+1) applications or processes
+2) process the feed of published messages
+
+5 zookeeper
+1) coordinator between brokers and consumers
+2) z-nodes
+(1)hierarchical namespace of data registers
+(2)stores data about co-ordination
+(3)limited data
+
+//------start zookeeper
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/zookeeper-server-start.sh config/zookeeper.properties
+
+then the zookeeper server is running
+
+we can change zookeeper.properties in /home/vagrant/Development/kafka_2.12-0.11.0.1/config/zookeeper.properties
+
+
+//------start broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server.properties
+
+then the broker server is running
+
+
+we can change zookeeper.properties in /home/vagrant/Development/kafka_2.12-0.11.0.1/config/server.properties
+
+
+//------create a topic
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic smackTopic
+
+then the topic is created
+
+cmd> ./bin/kafka-topics.sh --list --zookeeper localhost:2181  // list the topics
+
+//------start a producer
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic smackTopic  
+>message1
+>message2
+//------start a consumer
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic smackTopic  --from-beginning
+
+//------single node-multiple broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> cp config/server.properties config/server-1.properties
+cmd> cp config/server.properties config/server-2.properties
+cmd> cp config/server.properties config/server-3.properties
+
+in server-1.properties, 
+broker.id = 1
+log.dirs=/tmp/kafka-logs-1
+listeners = PLAINTEXT://:9093
+
+
+in server-2.properties, 
+broker.id = 2
+log.dirs=/tmp/kafka-logs-2
+listeners = PLAINTEXT://:9094
+
+in server-3.properties, 
+broker.id = 3
+log.dirs=/tmp/kafka-logs-3
+listeners = PLAINTEXT://:9095
+
+
+//--start brokers
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-1.properties
+
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-2.properties
+
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-3.properties
+
+
+//------create a topic
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 2 --partitions 2 --topic smackTopic2
+
+//------start producers
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-producer.sh --broker-list localhost:9093,  localhost:9094, localhost:9095 --topic smackTopic2 
+>Broker1
+>Broker2
+>Broker3
+>
+
+
+//------start consumer
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-consumer.sh --zookeeper localhost:2181  --from-beginning --topic smackTopic2 
+
+
+//------multiple node-multiple broker
+
+//------
+
+//------
+
+//------
+
+
+// -------------------------------Kafka architecture
+//------        kafka components
+                kafka topic
+producer0       partition1   consumer0
+producer1
+producer2       partition2   consumer1
+producer3
+producer4       partition3   consumer2
+
+//------in Kafka
+messages not published to all consumers
+messages published on topics
+topics run on broker, and a broker is a server!!!!!!!
+messages are stored
+
+//------segment files
+set of segment files make a partition
+message published -> broker appends the message to the last segment -> certain number of messages: segment file flushed -> messages available for consumption
+
+//------offset
+1 unique sequential number
+2 used to identify messages
+
+
+
+//------Kafka groups
+1 consists of consumers    !!!!!!
+2 one process belongs to one group
+
+//------delivering messages
+1 never redelivered; may be lost
+2 may be re-delivered; never lost
+3 delivered once
+
+//------log compaction
+two types of retention
+1 coarse grained
+2 finer grained
+
+
+//------log compaction functions
+1 ensures reads begin at offset
+2 doesn't allow the offset to change
+3 message order is preserved
+
+
+//------Kafka design points
+1 master less
+2 metadata
+3 OLTP
+4 push and pull(producers push the messages to brokers, and consuemrs pull the messages from brokers)
+5 retention
+6 retention
+7 storage
+8 synchronous
+
+//------message compression cases
+1 network bandwith - bottleneck
+2 compression mechanism
+
+decrease the network overhead
+increase the load in the CPU of the broker
+
+Compression protocol:
+1 GZIP
+2 Snappy
+
+parameters:
+1 compression.codec:
+1) default value - none
+2) valid value - none, gzip and snappy
+
+2 compressed.topics:  // which topic will be compressed
+if list is empty -> enable to compression of topics
+
+
+//------replication
+
+1 partitioning strategy
+2 producer - partitioning message decision
+3 broker failuer - message publish and consume
+4 replication-aware
+5 partition-replicas of message
+
+replication modes:
+1 asynchronous  -- faster but not fault tolerant
+2 synchronous
+
+
+
+// -------------------------------Producers
+creating a producer
+passing messages from producer to consumer
+
+
+producer: create messages and publish to broker
+
+//------classes needed to write a producer
+producer class - KafkaProducer<K, V>
+producerRecord    KafkaRecord<K, V> in org.apache.kafka.clients.producer.ProducerRecord
+
+//------simple producer
+1 install scala plugin for idea
+2 create a scala project
+3 in the project, install Scala SDK
+
+//------
+
+//------
+
+//------
+
+//------
+
+[error] (*:ssExtractDependencies) sbt.librarymanagement.ResolveException: unresolved dependency: net.sf.jopt-simple#jopt-simple;5.0.3: Resolution failed several times for dependency: org.sonatype.oss#oss-parent;7 {}::
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+//------
+
+// -------------------------------
+
+
+//------create a topic
+
+before that, we make sure zookeeper and brokers are running
+
+//start zookeeper
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/zookeeper-server-start.sh config/zookeeper.properties
+//start broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-0.properties
+//inside config/server-0.properties, we specified the zookeeper ip and port
+cmd> ./bin/kafka-server-start.sh config/server-1.properties
+//inside config/server-1.properties, we specified the zookeeper ip and port
+cmd> ./bin/kafka-server-start.sh config/server-2.properties
+//inside config/server-2.properties, we specified the zookeeper ip and port
+
+
+//create topic
+we can create a topic using API or command line.
+here, we use command line
+
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic smackTopic2
+
+//------compile the producer
+in source file folder, add build.sbt file and its content is(we add dependencies):
+libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.8.2.0"
+
+use command line to start sbt:
+cmd> sbt
+then:
+sbt> compile
+sbt> run smackTopic2 10    // run the program. the topic name is smackTopic2, msgCount = 10. it uses a infinite loop to publish messages
+
+//------
+
+//------start consumer
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-console-consumer.sh --zookeeper localhost:2181  --from-beginning --topic smackTopic2 
+
+
+
+//------
+// -------------------------------Kafka consumer
+
+1 the consumer subscribes a message consumption to a specific on the kafka broker.
+2 the consumer then makes a fetch request on the lead broker to consume the message partition by specifying the message offset
+3 the consumer works on a pull model, and always pull all available messages from its current position
+4 the consumers have group id
+
+example
+cmd> ./bin/kafka-console-consumer.sh --zookeeper localhost:2181  --from-beginning --topic smackTopic2 
+// ask zookeeper for broker info			--zookeeper localhost:2181 for broker info
+// the offset here is 					--from-beginning
+// the topic here is 					--topic smackTopic2 
+// assume we have a single partition on the topic
+//------
+
+
+
+//------create a topic 
+
+before that, we make sure zookeeper and brokers are running
+
+//start zookeeper
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/zookeeper-server-start.sh config/zookeeper.properties
+//start broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-server-start.sh config/server-0.properties
+//inside config/server-0.properties, we specified the zookeeper ip and port
+cmd> ./bin/kafka-server-start.sh config/server-1.properties
+//inside config/server-1.properties, we specified the zookeeper ip and port
+cmd> ./bin/kafka-server-start.sh config/server-2.properties
+//inside config/server-2.properties, we specified the zookeeper ip and port
+
+
+//create topic
+we can create a topic using API or command line.
+here, we use command line
+
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic smackTopics
+
+
+//------run producer
+in SimpleProducer folder:
+cmd> sbt
+sbt> compile
+sbt> run smackTopics 100
+
+//------run consumer
+in SimpleConsumer folder:
+cmd> sbt
+sbt> compile
+sbt> run localhost:2181 testGroup smackTopic
+
+//localhost:2181 		zookeeper addr 
+//testGroup 			grout Id
+//smackTopic			topic name
+
+
+// -------------------------------multithread consumer API design
+based on the number of partitions on the topics, we must have a one-to-one mapping between the threads and the partitions on the topic
+if we don't have the one-to-one relationships, we would have some conflicts such as threads that never receive a message, or threads that receive messages from multiple partitions
+
+//------
+///// partitons are physical units under each topic
+
+1 topics are split in partitons
+1) each partiton is ordered
+2) each message with a partition gets an incremental id, called offset
+
+partition0  	0,1,2,3
+partition1	0,1,2,3,4
+partition2	0,1,2
+
+notes:
+1 offsets only have a meaning for a specific partition
+2 order is guaranteed only within a partition
+3 data is kept only for a limited time
+4 once the data into a partitoin, it can't be changed(immutability)
+5 data is assigned randomly to a partition unless a key is provided
+6 you can have as many partitions per topic as you want
+
+//------we must have a one-to-one mapping between the threads and the partitions on the topic
+
+the section 7's example of multihread is not so good, and cannot compile. it seems that it doesn't use akka, it doesn't care about partition as well.
+Let it be here.
+
+We can use java multithread model, or learn akka in depth later.
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+
+// -------------------------------Integration of Kafka
+processing small data amounts is not a challenge(jms. but jms cannot deal with a great amount of data)
+systems have servious performance limitation
+
+//------Integration of Kafka with Apache Spark
+1 Kafka cluster
+2 spark - Ready to be deployed
+
+
+
+//------a useful tool
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-preferred-replica-election.sh --zookeeper localhost:2181 
+
+or
+cmd> ./bin/kafka-preferred-replica-election.sh --zookeeper localhost:2181 topicPartitionList.json
+// write all the topic-partition message into a json file
+
+//------adding servers
+
+//------moving partitions from a broker to another broker
+in kafka folder /home/vagrant/Development/kafka_2.12-0.11.0.1
+cmd> ./bin/kafka-reassign-partitions.sh ..... --execute
+
+//------kafka topic tool
+cmd> ./bin/kafka-topics.sh --create/alter/delete ....
+
+create topic
+
+add partitions to a topics
+
+delete topic
+
+//------query the list
+cmd> ./bin/kafka-topics.sh --list --zookeeper localhost:2181
+// list all the topics
+
+//------mirror maker
+cmd> ./bin/kafka-mirror-amker.sh --xxxx
+
+
+//------list all the topic and its offset
+cmd> ./bin/kafka-consumer-offset-checker.sh ...
+
+//------
+
+// -------------------------------Akka, Spark and Kafka
+1 analyzing connectors
+2 relation between
+1) akka and Spark
+2) Kafka and Akka
+3) Kafka and Cassandra
+
+//------akka and Spark   // the connector is akka activator
+
+
+//------akka and Kafka   // the connector is akka activator
+
+
+//------Kafka and Spark   // the connector is mvn api
+
+
+//------
+// -------------------------------Install Spark
+
+/home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/
+
+//------launch spark shell
+/home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+
+then we see scala REPL
+scala> val nums = 1 to 300000
+
+//------pass a RDD to scala
+//------use sc.parallelize(aVal) to pass a RDD to scala
+//------use collect() to collect result
+scala> val nums = 1 to 300000
+scala> val powerfulRdd = sc.parallelize(nums)
+scala> powerfulRdd.filter( _ % 2 == 0).collect()
+
+
+// -------------------------------Spark Core concepts
+1 Drvier program
+2 Data structure fragmens
+3 Spark 
+4 
+
+//------use sc to get context
+
+
+//------Operations
+number of nodes -> executors
+
+//------Spark API
+1 passing functions to their executors
+2 function based opertation
+3 single stage - chained together
+4 performed at one partition
+
+
+// -------------------------------RDD (Resilient Distributed Dataset)
+4 goal
+1 Data storage
+2 distributed in a cluster
+3 be fault tolerant
+by linear operations
+
+4 fast and efficient
+by(1) parallelization of operation  (2) minimizing data replication
+
+//------RDD operation
+1 transformation -- created from the original
+(1)map
+(2)filter
+(3)flatMap (Similar to map, but each input item can be mapped to 0 or more output items (so func should return a Seq rather than a single item).)
+(4)mapPartitions
+(5)mapPartitionsWithIndex
+(6)sample
+(7)union
+(8)intersection
+(9)distinct
+(10)groupByKey
+..
+
+2 action-- original RDD isn't changed
+(1)count
+(2)collect
+(3)first
+(4)reduce
+(5)take
+(6)takeSample
+
+//------actions and transformations
+1 original RDD remains unchanged
+2 functional programming is an aberration
+3 chain of transformations -> logged
+
+
+aberration
+ˌabəˈreɪʃ(ə)n/Submit
+noun
+a departure from what is normal, usual, or expected, typically an unwelcome one.
+
+//------lazy evulation
+1 prevents deadlocks and bottlenecks
+2 RDDs kept in memory
+
+
+//------datafroms API
+1 optimization(integration, multiformat)
+
+2 scalability
+
+
+// -------------------------------running a Spark application
+1 interactive shell vs running a Spark application
+
+2 main difference in porcess
+initialize the Spark context -> Submitted to the cluster(by the driver program) -> Executed as one whole piece(in non-interactive mode)
+
+//------example
+scala> import org.apache.spark.SparkContext, org.apache.spark.SparkContext._, org.apache.spark.SparkConf
+
+scala> val conf = new SparkConf().setMaster("local").setAppName("exampleApp")
+
+scala> val sc = new SparkContext(conf)
+
+//------Spark Applications
+scala> val docs = sc.textFile("/home/vagrant/Desktop/workspace/SMACK/fastDataProcessing/textInput/input.txt")
+
+scala> val lower = docs.map( line => line.toLowerCase)
+
+scala> val words = lower.flatMap(line => line.split("\\s+"))
+
+//
+The \s metacharacter is used to find a whitespace character.
+A whitespace character can be:
+A space character
+A tab character
+A carriage return character
+A new line character
+A vertical tab character
+A form feed character
+
+scala> val counts = words.map(word => (word, 1))
+
+scala> val freq = counts.reduceByKey(_ + _)
+
+scala> val invFreq = freq.map(_.swap)
+
+scala> invFreq.top(20).foreach(println)
+then we see the top 20 most frequent words:
+(42,the)                                                                        
+(28,of)
+(21,to)
+(16,a)
+(15,in)
+(12,and)
+(11,said)
+(10,was)
+(9,on)
+(9,mr)
+(8,it)
+(8,he)
+(7,that)
+(7,rajoy)
+(7,not)
+(7,is)
+(7,government)
+(7,catalonia's)
+(7,)
+(6,this)
+
+scala> val stopWords = Set()
+scala> val docsA = sc.textFile("/home/vagrant/Desktop/workspace/SMACK/fastDataProcessing/textInput/stopWordsA.txt")
+scala> val process1 = docsA.map( x => x.replace(",", ""))
+scala> val process1A = docsA.map( x => "x")
+
+scala> process1.take(50).foreach(println)
+scala> val process2B = process1.map(line => line.split("\\s+"))
+scala> val process2 = process1.flatMap(line => line.split("\\s+"))
+
+scala> process2.take(50).foreach(println)
+scala> val process3 = process2.mkString(", ")
+
+scala> process2B.take(50).foreach(println)
+
+scala> val process3 = process2.map(line => "\"" + line + "\"")
+scala> process3.take(50).foreach(println)
+
+scala> val stopWords = Set(process2B: _*)
+scala> val stopWords = Set(process2: _*)
+
+//------
+
+scala> val docsB = sc.textFile("/home/vagrant/Desktop/workspace/SMACK/fastDataProcessing/textInput/stopWordsB.txt")
+scala> val stopWords = Set("the", "of", "to", "a", "in", "and", "was", "be", "on", "it", "he", "that", "not", "is", "this")
+scala> val words = lower.flatMap(line => line.split("\\s+")).filter( ! stopWords.contains(_))
+scala> val counts = words.map(word => (word, 1))
+scala> val freq = counts.reduceByKey(_ + _)
+scala> val invFreq = freq.map(_.swap)
+scala> invFreq.top(20).foreach(println)
+// then we see the new result
+(11,said)
+(9,mr)
+(7,rajoy)
+(7,government)
+(7,catalonia's)
+(7,)
+(6,for)
+(6,catalonia)
+(6,article)
+(5,would)
+(5,with)
+(5,spanish)
+(5,spain's)
+(5,share)
+(5,puigdemont)
+(5,catalan)
+(5,but)
+(5,155)
+(4,will)
+(4,who)
+
+
+//------
+
+
+//------
+// -------------------------------Running the program
+1 /bin/spark-submit script   // use this command to run application
+2 small spplication
+3 modern java/scala IDE's
+
+//------use the run the code
+
+spark-hadoop2.xx/bin>sbt clean run
+
+then cd into file folder
+sourceFileFolder> sbt clean run
+
+with xx.sbt content:
+name := "sample"
+version := "1.0"
+libraryDependencies += "org.apache.spark" % "spark-core_2.10" % "2.2.0"
+still see some errors, for example: 
+[error] sbt.librarymanagement.ResolveException: unresolved dependency: com.esotericsoftware#kryo-shaded;3.0.3: org.sonatype.oss#oss-parent;7!oss-parent.pom(pom.original) origin location must be absolute: file:/home/vagrant/.m2/repository/org/sonatype/oss/oss-parent/7/oss-parent-7.pom
+
+
+//------
+
+//------
+
+//------
+
+
+//------
+// -------------------------------Rdd -- transformations and actions
+transformation-- receive multiple RDDs, return a new RDD
+action -= Return/write a result, trigger a compution(doesn't return a RDD)
+
+//------transformation
+1 lazy operation
+2 operate onleach each coolection item one at a time
+3 functional programming(transformations cann't modify the RDD it reveives as parameters)
+4 immutable
+5 lineage graph
+RDD Lineage (aka RDD operator graph or RDD dependency graph) is a graph of all the parent RDDs of a RDD. It is built as a result of applying transformations to the RDD and creates a logical execution plan.
+
+//------transformation example
+
+filter():
+//------launch spark shell
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List("Spark", "Cassandra", "Kafka"))
+scala> val filtered = rdd.filter(_.contains("k"))
+scala> filtered.collect()
+
+//collect:
+Collect (Action) - Return all the elements of the dataset as an array at the driver program. This is usually useful after a filter or other operation that returns a sufficiently small subset of the data.
+
+map():
+//------launch spark shell
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List(1,2,3,4,5))
+scala> val times = rdd.map(_*3)
+scala> times.collect()
+
+
+flatMap(): // returns sequence instead of a value, then flatens the results
+//------launch spark shell
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List("Spark is powerful", "Be like Spark"))
+scala> val fm = rdd.flatMap(str => str.split(""))
+scala> fm.collect()
+
+reduceByKey() :// aggregate using a function
+//------launch spark shell
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List("Spark is powerful", "Be like Spark"))
+scala> val fm = rdd.flatMap(str => str.split(""))
+scala> fm.collect()
+scala> val words = fm.map(w => (w, 1))
+scala> val wordCount = words.reduceByKey(_ + _)
+scala> wordCount.collect()
+scala> 
+
+groupBy() : //This operation will return the new RDD which basically is made up with a KEY (which is a group) and list of items of that group (in a form of Iterator).
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List("Spark is powerful", "Be like Spark"))
+scala> val fm = rdd.flatMap(str => str.split(""))
+scala> fm.collect()
+scala> val words = fm.map(w => (w, 1))
+scala> val wordCount = words.reduceByKey(_ + _)
+scala> wordCount.collect()
+scala> val countWord = wordCount.map{case (w, c) => (c, w)}
+scala> countWord.collect()
+scala> countWord.groupByKey().collect()
+scala> 
+
+distinct() // remove duplicate
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List("Spark is powerful", "Be like Spark"))
+scala> val fm = rdd.flatMap(str => str.split(""))
+scala> fm.distinct().collect()
+
+
+union() // -- return a new RDD(but the original RDDs are immutable)
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd1 = sc.parallelize(List("Akka", "Scala"))
+scala> val rdd2 = sc.parallelize(List("Spark", "Scala"))
+scala> rdd1.union(rdd2).collect()
+scala> 
+
+intersection() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd1 = sc.parallelize(List("Akka", "Scala"))
+scala> val rdd2 = sc.parallelize(List("Spark", "Scala"))
+scala> rdd1.intersection(rdd2).collect()
+scala> 
+
+cartesian() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd1 = sc.parallelize(List("Akka", "Scala"))
+scala> val rdd2 = sc.parallelize(List("Spark", "Scala"))
+scala> rdd1.cartesian(rdd2).collect()
+scala> 
+
+
+subtract() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd1 = sc.parallelize(List("Akka", "Scala"))
+scala> val rdd2 = sc.parallelize(List("Spark", "Scala"))
+scala> rdd1.subtract(rdd2).collect()
+scala> 
+
+
+join() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val hash1 = sc.parallelize( Seq(("1", "A"), ("2", "B"), ("3", "C"), ("1", "D")))
+scala> val hash2 = sc.parallelize( Seq(("1", "W"), ("2", "X"), ("3", "Y"), ("1", "Z")))
+scala> hash1.join(hash2).collect()
+scala> 
+
+cogroup() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val hash1 = sc.parallelize( Seq(("1", "A"), ("2", "B"), ("3", "C"), ("1", "D")))
+scala> val hash2 = sc.parallelize( Seq(("1", "W"), ("2", "X"), ("3", "Y"), ("1", "Z")))
+scala> hash1.cogroup(hash2).collect()
+scala> 
+
+def
+cogroup[W1, W2, W3](other1: RDD[(K, W1)], other2: RDD[(K, W2)], other3: RDD[(K, W3)], numPartitions: Int): RDD[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))]
+ Permalink
+For each key k in this or other1 or other2 or other3, return a resulting RDD that contains a tuple with the list of values for that key in this, other1, other2 and other3.
+
+//------action example
+1 action return simple values
+2 the action process can be very complex
+3 action tiggers transformation evaluation
+
+
+count() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List('S','M','A','C','K'))
+scala> rdd.count() 
+
+
+collect() // collect returns the elements of the dataset as an array(!!!) back to the driver program.
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List('S','M','A','C','K'))
+scala> rdd.collect()
+scala>
+scala> 
+
+reduce() //
+The reduce function of the map reduce framework
+reduce(func)
+Reduce is a spark action that aggregates a data set (RDD) element using a function.
+That function takes two arguments and returns one.
+The function must be parallel enabled.
+reduce can return a single value such as an int.
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List(5,4,3,2,1))
+scala> rdd.reduce(_ + _)
+scala> rdd.reduce( _ * _)
+scala> 
+
+take() //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List('S','M','A','C','K'))
+scala> rdd.take(3)
+scala>
+scala> 
+
+foreach() // 
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List(5,4,3,2,1))
+scala> rdd.foreach( n => print( "%s * 5 = %s, ".format(n, n * 5)))
+scala>
+scala> 
+
+
+first() // 
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val rdd = sc.parallelize(List(5,4,3,2,1))
+scala> rdd.first()
+scala>
+scala> 
+
+
+saveAsTextFile //
+//------
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val myLogs = sc.textFile("/home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/derby.log")
+scala> myLogs.filter(_.contains("Fatal")).saveAsTextFile("/home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/fatality.log")
+scala>
+scala> 
+
+//------persistence - caching
+1 recalculate the RDD
+2 costly
+3 iterative algorithm
+4 replicate data on multiple ndoes
+5 node failure
+
+persistence level
+1 memory level
+2 memory_and_disk
+3 ...
+
+serialized
+off-heap caching -- Alluxio
+
+//------persistence example
+import org.apache.spark.storage.StorageLevel
+
+val rdd = input.map(foo)
+rdd.persist(StorageLevel.DISK_ONLY)  // LRU policy
+rdd.reduce(bar)
+rdd.collect()
+
+//------
+
+//------
+
+// -------------------------------Spark in Cluster mode
+cluster manages:
+1 apache mesos
+2 hadoop YARN
+3 Amazon EC2
+
+
+//------architecture
+1 master or slave architecture
+2 master is called driver
+3 slaves are called executors
+4 we can have a distributed architecture in a single machine
+5 similar to actor's model : based on similar principles
+6 set of a driver with executors
+
+spark driver(spark context)
+|
+|
+|
+worker mode(executor task, task)   * N
+
+
+Spark streaming architecture
+1 launch using cluster manager
+2 spark canoncial architecture
+3 strategies -> executor dies or goes offline
+
+canonical
+kəˈnɒnɪk(ə)l/Submit
+adjective
+1.
+according to or ordered by canon law.
+"the canonical rites of the Roman Church"
+2.
+included in the list of sacred books officially accepted as genuine.
+"the canonical Gospels of the New Testament"
+noun
+1.
+the prescribed official dress of the clergy.
+
+//------dividing program into task
+1 spark driver
+2 DAG - Directed Acyclic Graph
+3 Task - Smallest unit of work
+
+
+
+//------scheduling tasks
+1 compliete view of executor's nodes
+2 standalone java process
+3 driver subdivides program into tasks
+4 doesn't execute next stage, unless previous stage completed
+5 shuffled results written to executor's disk
+6 data accessed without triggering re-computation
+7 drvier exposes information on web at Port 4040
+
+//------example
+cmd> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+then navigate to localhost:4040/
+
+scala> val rdd = sc.parallelize(List(1,2,3,4))
+scala> rdd.first()
+
+
+//------executor
+1 run individual task -> spark job
+2 roles: 
+1) run assigned tasks and return the results
+2) provide in-memory storage
+3 program - block manager
+
+//------cluster manager
+1 pluggable component(we can use mesos, yarn or EC2)
+2 terminology - master and worker
+3 single script to launch
+4 spark-submit
+1) offers options to connect
+2) manage cluster resources
+
+//------program execution
+step1 runs the spark-submit shell
+step2 launches the driver program, invokdes the main method
+step3 driver program establishes the connection(the driver program has a list of the connected machines)
+step4 launches executors in each slave node
+step5 driver program analyzes, divides and distributes
+step6 Tasks run in the executors(each executor calculates and stores the result)
+step7 exit _in main mehtod is invoked
+step8 Ends the executors. Free -> cluster manager resources
+
+
+//------application deployment
+1 spark-submit tool (submit job to the cluster manager)
+2 pass script name or JAR file(if we only run the spark job in standalone mode)(run on local mode)
+  if we need to run our job on cluster mode, we need to pass extra paramters
+
+//------example 
+cmd> bin/spark-submit --master spark://luckyhost:7077 --executor-memory 10g LotteryCalculator.jar
+we run the program on spark://luckyhost:7077(the master), and each executor will have 10g memory
+
+cluster URL
+1) shceduling - resources -> each job
+2) dependencies - libraries and files
+
+--master // 
+--deploy-mode
+--class 
+--name
+--jars
+--files
+--num-executors
+--total-executor-cores
+--executor-memory
+--driver-memory
+--conf prop=value 
+--properties-file   // json file
+
+//mesos://host:port
+local
+local[N]
+local[*]  // use as many cores as it can
+
+example
+$ ./bin/spark-submit \
+--master spark://masterHelix:7077\
+--deploy-mode cluster \
+--class com.cyberdyne.DNAsequencer\
+--name "DNA Sequencer"\
+--jars neuralNet.jar,geneticAI.jar
+--total-executor-cores 300\
+--total-executor-cores 300 \
+--executor-memory 10\
+sequencer.jar
+
+//------standalone cluster manager
+run spark clustered applications
+one master and several workers
+
+/home/test/spark
+
+on the master 
+
+//------example - standalone cluster manager
+step1
+copy the compiled spark in the same directory of all machines
+for example, in /home/test/spark
+
+step2
+on the master node, run ssh-keygen entering the default options(the require there is same user account on each machine)
+spark/bin $ ssh-keygen -t dsa
+(/home/UserName/.ssh/id_dsa):[ENTER]
+Enter passphrase (empty for no passphrase): [EMPTY]
+Enter same passphrase again:[EMPTY]
+
+use the following cmd 
+$ cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+
+step3--on worker nodes:
+copy the file ~/.ssh/id_dsa.pub from the Master to the Worker, then
+$ cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+$ chmod 644 ~/.ssh/authorized_keys
+
+then we add master and slave list to the following file:
+spark/conf $ slaves.template
+
+then we start the cluster:
+spark/sbin/start-all.sh   // it is significant to run it on master
+
+then navigate to http://localhost:8080/ to see the monitor
+
+then we stop all the worker:
+spark/sbin/stop-all.sh
+
+
+step4
+we can start the cluster by hand:
+spark $> bin/spark-class org.apache.spark.deploy.master.Master
+
+on every worker, we use the following cmd to start the worker
+spark $> bin/spark-class org.apache.deploy.worker.Worker spark://urlMasterNode:7077
+//  spark://urlMasterNode:7077 is the url of master node
+
+//------submitting application
+in standalone cluster manager, using:
+$ spark-submit --master spark://masterNodeHost:masterNodePort appName
+
+we can see the webURL in http://localhost:8080/, like in my machine, it is: spark://vagrant-ubuntu-trusty-64:7077
+
+the driver runs as the same process as the spark-submit
+
+cluster mode, the driver is launched as another process on one of the work node
+
+
+//------Executor Memory
+Parameters:
+Specify number of cores
+Available memory for each node
+
+Mistake - Assign more resources then it can offer
+check cluster meeting all paramters
+
+//------configuring resources
+
+--executor-memory 
+--total-executor-cores aNumber
+
+
+//------working in the cluster
+1 process dies -> manager won't die
+2 drvier survivies in single node
+3 logevity tool -> apache zookeeper   // discussed in Mesos section
+youd
+
+//------
+
+
+// -------------------------------Spark Streaming
+1 manage data flows
+2 concept 
+DStreams =  Discretized streams
+
+discretize
+dɪˈskriːtʌɪz/Submit
+verbMATHEMATICS
+past tense: discretized; past participle: discretized
+represent or approximate (a quantity or series) using a discrete quantity or quantities.
+
+//------DStreams
+DStream - Sequence of information related to time
+Internal DStream = a sequence of RDD
+Time-related operations -- sliding windows
+additional configurations - 24/7 service
+
+//------Spark Streaming Architecture
+1 micro-batch architecture
+2 Continuous flow
+two pieces of data -> same time windows -> same batch of information
+
+if two pieces of data are coming at the same time window, they are treated as the same batch of information.
+
+3 size of the batches -> parameter -> batch interval
+the size of the window is determined by a parameter called batch interval( normally, several seconds >=  batch interval >= 500ms )
+
+4 the task of Spark Streaming is to receive continuous stream of data, and build a DStream
+
+//------Additional Information - DStream
+1 Create -> input sources
+
+2 Apply transformations
+
+3 Support transformation from RDD
+
+4 Stateful transformation that can aggregate data across time
+
+5 Support output operations(similar to the action that RDD write to external system)
+
+6 Run periodically, producing the output batch
+
+7 for each input source, spark launches Streaming receivers(Streaming receivers are tasks that run on executors, and gather data from information sources and store it in RDDs. )
+
+8 Recevier responsible for replicating data(The receivers are also responsible for replicating data among the other executors to support fault tolerance)
+
+9 Runs Spark jobs(the streaming content in the driver program periodcally run spark jobs to process the data, and combine them with new RDDs)
+
+
+//------Fault Tolerance
+1 Recalculate DStreams
+2 Mechanism -> Check pointing  (periodically save the state to a reliable file system)
+3 Checkpoint - 5-10 data batches(when something bad happens, spark only need to recover from the last checkpoint)
+
+
+//------Transformations
+1 Type - Stateless transformation
+2 Stateful transformation 
+Stateless: process is independent from pervious batches
+Stateful: Uses data, or results of previous batches
+
+RDD includes transformations already known as map, reduce, filter
+
+Stateful transformation includes transformations based on sliding windows and status tracked over time
+
+//------stateless transformation
+
+$> /home/vagrant/Desktop/Development/spark-2.2.0-bin-hadoop2.7/bin/spark-shell 
+scala> val ds = sc.parallelize(List(1,2,3,4,5))
+scala> ds.map(_ * 3).collect()
+
+// remember the result
+// flatMap() -- to apply function to each RDD in the DStream, return one DStream with the content to the returned iterators
+scala> val ds = sc.parallelize(List("Spark", "Mesos", "Akka", "Cassandra", "Kafka"))
+scala> ds.flatMap(str => str.split("")).collect()
+res1: Array[String] = Array(S, p, a, r, k, M, e, s, o, s, A, k, k, a, C, a, s, s, a, n, d, r, a, K, a, f, k, a)
+
+// filter() -- 
+scala> ds.filter(_.contains("k")).collect()
+
+
+// repartition -- to change the number of DStream partitions. Basically, 5 partitons are created per second per recevier. We can change it 
+scala> ds.repartition(9)
+scala> ds.repartition(9).collect()
+
+
+// reduceByKey()
+scala> val ds = sc.parallelize(Array(("a", 1), ("b", 1), ("a", 1), ("a", 1), ("b", 1), ("b", 1), ("b", 1), ("b", 1), ("b", 1)))
+scala> ds.reduceByKey(_ + _).collect()
+
+// groupByKey()
+scala> ds.groupByKey().collect()
+
+
+//------Importance of Transformations
+1 applies to whole Dstream
+2 reduceByKey() -- applies function to each RDD(not all DStreams)
+3 combine data from multiple Dstreams
+4 RDDs:
+1) Co group
+2) Join
+3) Left Outer Join functions
+
+
+//------DStream
+1 Advanced operator called Transform() method 
+2 Use the Streaming Spark
+3 Combine several DStreams -> Use Streaming Context transform
+
+//------Stateful Transformations
+1 Track data across time
+2 generate new batches
+3 two types:
+1) Windowed transformations - act on data -> time period window	//
+2) update StateKyKey - Track the status -> Same key event(for example, a user session)	//	
+4 require check pointing to enable fault tolerance
+
+//------Windowed transforamtion
+1 calculates results
+2 allow combination of results over several batches
+3 parameters:
+1) window duration		(must be a multiple of steaming context batch interval)
+2) slide duration		(must be a multiple of steaming context batch interval)
+4 formula - batches considered = window duration/ batch interval
+5 slide duration indicates how often we want to calculate the results
+ slide duration default value -> batch interval duration
+
+//------Batch Interval
+1 calculate the window every two seconds
+2 change slide duration to 20 seconds
+
+
+//------example
+scala> import org.apache.spark._, org.apache.spark.streaming._, org.apache.spark.streaming.StreamingContext._
+scala> val conf = new SparkConf().setMaster("local[2]").setAppName("WindowExample")
+scala> val ssc = new StreamingContext(sc, Seconds(1)) // create new Streaming context
+scala> val lines = ssc.socketTextStream("localhost", 9999)  //create the line t stream that is listening  on tcp localhost:9999
+scala> val wind = lines.window(Seconds(30), Seconds(10))  // create the window. 30s is the window length, 10s the slide interval
+scala> wind.foreachRDD(rdd => {rdd.foreach(x => println(x + " "))})
+
+then open a new terminal
+$> nc -lk 9999
+
+go to Spark terminal
+scala> ssc.start()
+scala> ssc.awaitTermination()
+
+then we go to the previous terminal, type:
+$> 10 20 30 (then press enter)
+
+then in Spark terminal we can see // the window length is 30s
+10 20 30    // in first 10s
+10 20 30    // second 10s
+10 20 30    // third 10s
+
+
+
+//------Count By...
+Return a new sliding window
+Count By Window 
+DStream represents the number of elements in each window
+
+countByWindow(windowLength, slideInterval)
+lines.countByWindow(Seconds(30), Seconds(10)).print()
+
+
+Count By Value and Window()
+DStream represents the counts of each value
+
+
+//------Update State by Key
+1 maintain a state between batches
+2 provide access to the DStream
+3 Update function
+1) past events with key with previous state
+2) returns a new state
+4 Result - new DStream with RDD in pairs
+
+paramters
+1 Event -placed in current batch
+2 oldState - Optional
+3 newState - Optional
+
+//------Output Operations
+1 no output operations -> process won't start
+2 used for debugging
+3 print results on screen
+4 RDDsave() operation
+5 compute each DStream RDD
+6 similar to transform function
+
+//------Fault-Tolerant Spark Streaming
+1 guarantee fault tolerant
+2 calculates the result
+3 provide corrent semantics
+4 enable checkpoint
+1) reliable storage storage
+2) HDFS
+3) Amazon S3
+
+//------Check Pointing
+Purpose - limits the state to be recomputed
+Lineage graph of transformations
+run streaming applications
+use replicated file system
+HDFS, Amazon S3, or NFS
+
+//------Parallelism Level
+reduce batch processing time
+
+1 increasing parallelism - reduceByKey function
+2 adding receptors
+3 repartitioning data
+
+//------window size and batch size
+minimum batch size -> 500 milliseconds
+process time remains consistent -> reduces the batch size     // from 10 seconds then reduce it 
+causes a bottleneck
+
+//------Garbage collector
+1 enable concurrent garbage collector MarkSweep
+2 more reources -> fewer pauses
+3 XX - +ConcMarkSweepGC
+4 lower the pressure
+
+//------
+
+//------
+
+//------
+
+//------
+
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+
+
+
+
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------
+//------
+
+//------
+
+//------
+
+//------
+// -------------------------------in libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.11.0.1" api
+don't forget to add "bootstrap.servers" property when creating a consumer
+
+    props.put("bootstrap.servers", "localhost:9092")
+//------
+
+//------
+
+//------
+
+//------
+
+////////////////////////////scala ------remember this line of code
+
+    val consumer = new KafkaConsumer[String, String](props)
+
+////////////////////////////scala ------    <- ??? mean???
+
+////////////////////////////
+
+  consumer.subscribe(util.Collections.singletonList(TOPIC))
+
+
+////////////////////////////  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+remember the code from 
+https://gist.github.com/fancellu/f78e11b1808db2727d76
+
+
+
+Kafka Producer/Consumer Example in Scala
+Raw
+ ConsumerExample.scala
+import java.util
+
+import org.apache.kafka.clients.consumer.KafkaConsumer
+
+import scala.collection.JavaConverters._
+
+object ConsumerExample extends App {
+
+  import java.util.Properties
+
+  val TOPIC="test"
+
+  val  props = new Properties()
+  props.put("bootstrap.servers", "localhost:9092")
+
+  props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+  props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+  props.put("group.id", "something")
+
+  val consumer = new KafkaConsumer[String, String](props)
+
+  consumer.subscribe(util.Collections.singletonList(TOPIC))
+
+  while(true){
+    val records=consumer.poll(100)
+    for (record<-records.asScala){
+     println(record)
+    }
+  }
+d}
+
+
+ProducerExample.scala
+object ProducerExample extends App {
+ 
+ import java.util.Properties
+
+ import org.apache.kafka.clients.producer._
+
+ val  props = new Properties()
+ props.put("bootstrap.servers", "localhost:9092")
+  
+ props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+ props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+
+ val producer = new KafkaProducer[String, String](props)
+   
+ val TOPIC="test"
+ 
+ for(i<- 1 to 50){
+  val record = new ProducerRecord(TOPIC, "key", s"hello $i")
+  producer.send(record)
+ }
+    
+ val record = new ProducerRecord(TOPIC, "key", "the end "+new java.util.Date)
+ producer.send(record)
+
+ producer.close()
+}
+////////////////////////////error
+
+请教一个简单的问题
+如何用scala把一个类似 word1, word2, word3的文本转化成 "word1", "word2", "word3"
+谢谢
+
+使用split
+
+
+////////////////////////////
+
+////////////////////////////
