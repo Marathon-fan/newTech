@@ -30,7 +30,93 @@ $ docker run -it --rm \
 
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+### defining a keyspace(database)
+
+// in dc1, we will 3 replicas, in dc2, we will have 2 replicas; thus, we must at least have 5 nodes   
+// 
+```sql
+CREATE KEYSPACE vehicle_tracker
+WITH REPLICATION = { 'class':'NetworkTopologyStrategy', 'dc1':3, 'dc2':2};
+
+
+CREATE KEYSPACE sample
+WITH REPLICATION = { 'class':'SimpleStrategy', 'replication_factor': 1};
+
+DESCRIBE KEY SPACE vehicle_tracker
+```
+
+### delete a keyspace(database)
+```sql
+DROP KEYSPACE vehicle_tracker;
+DESCRIBE KEY SPACE vehicle_tracker
+```
+
+### creatting/delete a table   
+
+creatting a table   
+```sql
+CREATE TABLE activity(
+home_id text,
+datetime timestamp,
+event text,
+code_used text,
+PRIMARY KEY (home_id, datetime)
+) WITH CLUSTERING ORDER BY (datetime DESC);
+```
+
+
+delete a table
+```sql
+DROP TABLE activitY
+```
+
+entering a keyspace(database)
+```sql
+USE home_security;
+```
+
+defining columns and types
+```sql
+CREATE TABLE activity(
+home_id text,
+datetime timestamp,
+event text,
+code_used text,
+....
+)
+
+```
+
+
+
+CQL data types
+```sql
+bigint
+blob
+boolean
+coutner
+varchar
+text
+```
+note: varchar is the same as text
+
+
+defining a primary key
+```sql
+PRIMARY KEY (home_id, datetime)
+```
+
+Recoginzing a partiton key  
+the partition key is hashed by the partitioner to determine which node in the cluster will store the partition   
+```
+
+```
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
