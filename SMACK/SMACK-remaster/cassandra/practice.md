@@ -20,6 +20,28 @@ sudo docker run -d --name cassandra-server \
     bitnami/cassandra:3.11.2
    # the data will be persisted in /home/bitnami/cassandra/data
    # !!! use "docker logs containerID to see logs when some errors occur like the container exits 
+   # the data will be synced to the host folder: /var/lib/docker/volumes/cassandraData/_data/
+   # for example. use the cmd to see the data: sudo cat /var/lib/docker/volumes/cassandraData/_data/cassandra/data/commitlog/CommitLog-6-1534054262776.log
+
+sudo ls /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/
+# edit configure file 1
+sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
+# change the following value
+cluster_name: 'testCassandra'
+listen_address: 'cassandra1/2/3'   # enter the machine's name. add the DNS to /etc/hosts file
+endpoint_snitch: GossipingPropertyFileSnitch
+parameters:
+          # seeds is actually a comma-delimited list of addresses.
+        - seeds: 'cassandra1, cassandra2, cassandra3'
+
+# edit configure file 2
+sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
+# change the following value
+dc=Datacenter1 # for cassandra1 use  Datacenter1; for cassandra2 use  Datacenter2; for cassandra3 use  Datacenter3;
+rack=rack1
+
+# restart cassandra
+docker restart cassandra-server
 
 docker logs -f cassandra-server
 
@@ -32,10 +54,20 @@ $ docker run -it --rm \
 docker exec -it cassandra-server bash
 nodetool status
 
+
+
+docker volume ls
+# then use 
+docker inspect volume_name
+# Remove a volume:
+$ docker volume rm my-vol
+
+
 ```
 
 use the following cmd to create KEYSPACE, TABLE, and insert data
 ```sql
+
 CREATE KEYSPACE sample
 WITH REPLICATION = { 'class':'SimpleStrategy', 'replication_factor': 1};
 
@@ -49,10 +81,12 @@ code_used text,
 PRIMARY KEY (home_id, datetime)
 ) WITH CLUSTERING ORDER BY (datetime DESC);
 
-insert into activity (home_id, datetime, event, code_used) VALUES ('H01474777', '2018-05-21 07:32:16', 'alarm set', '5599');
-insert into activity (home_id, datetime, event, code_used) VALUES ('H01474778', '2018-05-22 07:32:16', 'alarm set', '5600');
+insert into activity (home_id, datetime, event, code_used) VALUES ('H01474777', '2018-05-21 07:32:16', 'alarm set1', '5599');
+insert into activity (home_id, datetime, event, code_used) VALUES ('H01474778', '2018-05-22 07:32:16', 'alarm set2', '5600');
+insert into activity (home_id, datetime, event, code_used) VALUES ('H01474779', '2018-05-22 07:32:19', 'alarm set3', '5601');
 
 select * from activity;
+
 ```
 
 
