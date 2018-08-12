@@ -12,6 +12,23 @@ see the first cluster(vnode) -4611686018427387904, so the data with home_id H010
 
 ![partitionKey](./pics/partitionKey.jpg)
 
+in the following example, the partition key is the PRIMARY KEY definition--the value before the first comma. so in the example, the partition key is home_id
+```sql
+CREATE TABLE activity(
+home_id text,
+datetime timestamp,
+event text,
+code_used text,
+PRIMARY KEY (home_id, datetime)
+) WITH CLUSTERING ORDER BY (datetime DESC);
+```
+
+partiton key = RowKey
+
+## joins does not exist in Cassandra   
+The fact that joins do not exist in Cassandra is perphaps the most significant data modeling difference between a distributed database versus a relational database.
+**The data for a table in a distributed database is spreaded across the nodes in the cluster based on the token values generated from the partition keys. It could be incredably slow for a cluster to join across multiple tables**
+
 
 
 ## virtual nodes, or vnodes. 
