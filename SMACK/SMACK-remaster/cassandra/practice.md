@@ -5,7 +5,13 @@ figure "nodetool: Failed to connect to '127.0.0.1:7199' - ConnectException: 'Con
 
 in light_sail2, copy the saved files to cassandra
 
+## 
 
+```
+Cannot start node if snitch's data center (dc1) differs from previous data center (datacenter1)
+
+http://prajeeth.com/tech_blog/apache/cassandra/cassandra_snitch_error/
+```
 
 ## use docker
 
