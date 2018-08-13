@@ -1,5 +1,10 @@
 # cassandra  
 
+## to do   
+figure "nodetool: Failed to connect to '127.0.0.1:7199' - ConnectException: 'Connection refused (Connection refused)'." problem
+
+in light_sail2, copy the saved files to cassandra
+
 
 
 ## use docker
@@ -25,14 +30,28 @@ sudo docker run -d --name cassandra-server \
 
 sudo ls /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/
 # edit configure file 1
+
+sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-env.sh
+#
+JVM_OPTS="$JVM_OPTS -Dcassandra.ignore_dc=true"
+
 sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
 # change the following value
+# line 5
 cluster_name: 'testCassandra'
-listen_address: 'cassandra1/2/3'   # enter the machine's name. add the DNS to /etc/hosts file
+# line 599
+listen_address: 'cassandra1/2/3 ip'   # enter the machine's name. add the DNS to /etc/hosts file
 endpoint_snitch: GossipingPropertyFileSnitch
+# line 425
 parameters:
           # seeds is actually a comma-delimited list of addresses.
-        - seeds: 'cassandra1, cassandra2, cassandra3'
+        - seeds: 'cassandra1 ip, cassandra2 ip , cassandra3 ip' 
+
+broadcast_rpc_address: '172.18.0.2'  # ????
+
+sudo cp cassandra1.yaml /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
+sudo cp cassandra-env.sh /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-env.sh
+sudo cp cassandra-rackdc2.properties  /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
 
 # edit configure file 2
 sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
@@ -52,9 +71,9 @@ $ docker run -it --rm \
 
 # see cluster status
 docker exec -it cassandra-server bash
-nodetool status
+nodetool status  # make sure that ports 7000 and 9042 are open within your security group
 
-
+# nodetool status !!!
 
 docker volume ls
 # then use 
