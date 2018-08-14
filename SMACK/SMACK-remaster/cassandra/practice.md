@@ -1,6 +1,16 @@
 # cassandra  
 
+## success  
+now the cassandra2 can run successfully
+
+
 ## to do   
+
+problem:
+in lightsail 3, the following error info:
+nami    ERROR Unable to start com.bitnami.cassandra: /opt/bitnami/cassandra/bin/cassandra: 1: /opt/bitnami/cassandra/bin/../conf/cassandra-env.sh: Syntax error: "(" unexpected
+
+
 figure "nodetool: Failed to connect to '127.0.0.1:7199' - ConnectException: 'Connection refused (Connection refused)'." problem
 
 in light_sail2, copy the saved files to cassandra
@@ -11,7 +21,12 @@ in light_sail2, copy the saved files to cassandra
 Cannot start node if snitch's data center (dc1) differs from previous data center (datacenter1)
 
 http://prajeeth.com/tech_blog/apache/cassandra/cassandra_snitch_error/
+
+# set CASSANDRA_BROADCAST_ADDRESS to IP address of your machine that hosts the Docker.
+
+
 ```
+
 
 ## use docker
 
@@ -23,11 +38,12 @@ docker network create app-tier --driver bridge
 
 # launch cassandra-server container
 # inside docker, the install directory is /bitnami/cassandra
-sudo docker run -d --name cassandra-server \
+sudo docker run -d --name cassandra-server3 \
     --network app-tier \
     -e CASSANDRA_PASSWORD_SEEDER=yes \
     -e CASSANDRA_PASSWORD=cassandra \
     -v 'cassandraData:/bitnami:z' \
+    -p 7000:7000 \
     bitnami/cassandra:3.11.2
    # the data will be persisted in /home/bitnami/cassandra/data
    # !!! use "docker logs containerID to see logs when some errors occur like the container exits 
@@ -44,7 +60,7 @@ JVM_OPTS="$JVM_OPTS -Dcassandra.ignore_dc=true"
 sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
 # change the following value
 # line 5
-cluster_name: 'testCassandra'
+cluster_name: ''  // dont change it
 # line 599
 listen_address: 'cassandra1/2/3 ip'   # enter the machine's name. add the DNS to /etc/hosts file
 endpoint_snitch: GossipingPropertyFileSnitch
@@ -55,9 +71,9 @@ parameters:
 
 broadcast_rpc_address: '172.18.0.2'  # ????
 
-sudo cp cassandra1.yaml /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
+sudo cp cassandra3.yaml /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra.yaml
 sudo cp cassandra-env.sh /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-env.sh
-sudo cp cassandra-rackdc2.properties  /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
+sudo cp cassandra-rackdc3.properties  /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
 
 # edit configure file 2
 sudo vi /var/lib/docker/volumes/cassandraData/_data/cassandra/conf/cassandra-rackdc.properties
@@ -66,9 +82,9 @@ dc=Datacenter1 # for cassandra1 use  Datacenter1; for cassandra2 use  Datacenter
 rack=rack1
 
 # restart cassandra
-docker restart cassandra-server
+docker restart cassandra-server3
 
-docker logs -f cassandra-server
+docker logs -f cassandra-server3
 
 # use cqlsh to login to cassandra-server    
 $ docker run -it --rm \
@@ -87,8 +103,10 @@ docker inspect volume_name
 # Remove a volume:
 $ docker volume rm my-vol
 
-
 ```
+
+
+
 
 use the following cmd to create KEYSPACE, TABLE, and insert data
 ```sql
@@ -114,6 +132,21 @@ select * from activity;
 
 ```
 
+///// FOR Reference
+
+```
+docker run --name cassandra -i \
+-v /media/mcamp/HDD/Docker/CampgroundContainer1:/var/lib/cassandra \
+-e CASSANDRA_SEEDS="192.168.0.114, 192.168.0.101, 192.168.0.106" \
+-e CASSANDRA_CLUSTER_NAME=CampCluster \
+-e CASSANDRA_DC=campground-wireless \
+-e CASSANDRA_RACK=Docker1 \
+-e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch \
+-e CASSANDRA_START_RPC=true \
+-e CASSANDRA_LISTEN_ADDRESS=172.17.0.2 \
+-p 7000:7000 \
+ cassandra:latest
+```
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ### defining a keyspace(database)
