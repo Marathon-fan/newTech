@@ -1,4 +1,9 @@
 
+
+ip addresses and hadoop componets   
+![ip addrs and hadoop componets](./topoHadoop.jpg)
+
+
 ## Cluster Setup in local machine       
 
 ### step1 - on Windows, set up vagrant-proxyconf    
