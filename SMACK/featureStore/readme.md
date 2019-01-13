@@ -22,6 +22,12 @@ Solution
 • Modelers select features by name & join key. Offline & online pipelines autoconfigured
 ```
 
+## What are options to create feature store in Hadoop?   
+
+Depends mostly on what you do next with your features and their size.   
+Typically features are derived from **raw input stored on HDFS** and stored back to **HDFS,** with a **Hive table overlay** or a **Pig schema**. Next step is **model training** with **Spark or MapReduced** based program (RHadoop...). HBase might be used instead of HDFS.   
+You have to consider iterating on your feature generation and updating your model with more recent information (and trimming off older input data too). We almost always partition the raw data by ingest date, and partition the features by batch id for tracking purposes.
+
 ## pipeline For Offline Training With Feature Store   
 
 ![pipelineForOfflineTrainingWithFeatureStore](./pics/pipelineForOfflineTrainingWithFeatureStore.PNG)
