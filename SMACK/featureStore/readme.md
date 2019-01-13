@@ -35,7 +35,9 @@ Solution
 
 ## serving layer   
 
-serving layer means real-time view
+Logically, the Serving Layer acts as the interface between Feature Store and its downstream applications and other consumers.   
+
+Sometimes, serving layer means real-time view
 
 ![servingLayer](./pics/servingLayer.PNG)
 
