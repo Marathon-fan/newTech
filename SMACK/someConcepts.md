@@ -1,4 +1,9 @@
 
+# Data ingestion   
+
+Data ingestion is the process of obtaining and importing data for immediate use or storage in a database. To ingest something is to "take something in or absorb something." Data can be streamed in real time or ingested in batches.
+
+
 # landing:   
 
 ```
