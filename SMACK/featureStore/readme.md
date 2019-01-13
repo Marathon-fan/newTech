@@ -24,12 +24,12 @@ Solution
 
 ## pipeline For Offline Training With Feature Store   
 
-![pipelineForOfflineTrainingWithFeatureStore](./pics/pipelineForOfflineTrainingWithFeatureStore.png)
+![pipelineForOfflineTrainingWithFeatureStore](./pics/pipelineForOfflineTrainingWithFeatureStore.PNG)
 
 
 ## Pipeline For Online Serving With Feature Store   
 
-![PipelineForOnlineServingWithFeatureStore](./pics/PipelineForOnlineServingWithFeatureStore.png)
+![PipelineForOnlineServingWithFeatureStore](./pics/PipelineForOnlineServingWithFeatureStore.PNG)
 
 
 
@@ -37,6 +37,6 @@ Solution
 
 serving layer means real-time view
 
-![servingLayer](./pics/servingLayer.png)
+![servingLayer](./pics/servingLayer.PNG)
 
 
