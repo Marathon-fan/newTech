@@ -98,3 +98,8 @@ Data transport engine for integrating Hadoop with relational databases
 
 ```
 
+# SFTP   
+
+SFTP, which stands for SSH File Transfer Protocol, or Secure File Transfer Protocol, is a separate protocol packaged with SSH that works in a similar way over a secure connection.
+
+
