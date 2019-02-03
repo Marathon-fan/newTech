@@ -21,9 +21,9 @@ support, operations, and hardware
 
 ```
 
-![OozieTutorial1](pics/OozieTutorial1.png)
+![OozieTutorial1](pics/OozieTutorial1.PNG)
 
-![OozieTutorial1](pics/OozieTutorial2.png)
+![OozieTutorial1](pics/OozieTutorial2.PNG)
 
 **control-flow nodes**   
 start, kill, end, fork, join, decision   
