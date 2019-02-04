@@ -13,8 +13,9 @@ What does it do?
 Let's reuse the project's bang-on one sentence:
 
 
-!(nififlow1)[./pics/nififlow1.png]
+![nififlow1](./pics/nififlow1.png)
 
 
-!(nififlow2)[./pics/nififlow2.png]
+![nififlow2](./pics/nififlow2.png)
+
 
