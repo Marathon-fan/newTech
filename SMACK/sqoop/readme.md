@@ -26,6 +26,10 @@ sqoop2
 ![sqoop2](pics/sqoop2.PNG)
 
 
+sqoop incremental import
+![sqoop incremental import](pics/incrementalImport.PNG)
+
+
 
 sqoop and Oozie  
 ![sqoop2](pics/sqoopOozie.PNG)
