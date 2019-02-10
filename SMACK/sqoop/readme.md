@@ -18,16 +18,16 @@ sqoop works with anything that is JDBC compliant
 ```
 
 sqoop1  
-!(sqoop1)[pics/sqoop1.PNG]
+![sqoop1](pics/sqoop1.PNG)
 
 
 
 sqoop2  
-!(sqoop2)[pics/sqoop2.PNG]
+![sqoop2](pics/sqoop2.PNG)
 
 
 
 sqoop and Oozie  
-!(sqoop2)[pics/sqoopOozie.PNG]
+![sqoop2](pics/sqoopOozie.PNG)
 
 
