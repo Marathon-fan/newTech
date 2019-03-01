@@ -127,9 +127,22 @@ DataSet<Tuple3<Integer, String, String>> joined = personSet.join(locationSet).wh
               public Tuple3<Integer, String, String> join(Tuple2<Integer. String> person, Tuple2<Integer, String> location) {
                 return new Tuple3<Integer, String, String>(person.f0, person.f1, location.f1); //  returns tuple of (1 John DC)
               }
-          });
+          }); // manually get the output in this function(better practice)   // we get the 0 filed of person, 1 field of person, 1 field of location  
 
 joined.writeAsCsv(params.get("output"), "\n", " ");
 env.execute("Join example");
 
+
+// then we submit the job to flink
+./bin/flink run /path/innerjoin.jar --input1 file:///path.person --input2 file:///path/location --output file:///path/innerjoinresult    
+
+
+
 ```
+
+## outer join   
+
+we can also do outer join using Flink   
+
+
+
