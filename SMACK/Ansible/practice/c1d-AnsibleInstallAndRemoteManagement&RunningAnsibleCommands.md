@@ -18,6 +18,19 @@ ansible all -i remoteServerIP, -m ping
 
 ansible all -i web01,web02,web03,web04 -m ping
 
+ansible all -i web01,web02,web03,web04 -m command --args 'uptime'
+
+ansible all -i web01,web02,web03,web04 -m command --args 'sudo apt-get install -y apache2'
+
+
 ```
 
+
+# summary
+
+```
+DevOps - idempotence and immutable infrastructure
+Ansible as a choice for DevOps
+Ansible commands
+```
 
