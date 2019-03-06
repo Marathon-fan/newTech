@@ -241,4 +241,7 @@ winrm (windows remote management)
 docker (docker exec)
 ```
 
+# creating inventory groups    
+
+
 
