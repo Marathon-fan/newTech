@@ -144,7 +144,7 @@ tasks
 handlers
 ```
 
-***task**
+**task**
 
 
 ```yaml
@@ -175,7 +175,7 @@ use variables
 
 ```
 
-**Handlers**: handlers are just like tasks, but they only run if notified
+**Handlers**: handlers are just like tasks, but they only run if notified    
 ```yaml
 # only restart postgreSQL if the configuration file has changed
 
@@ -243,5 +243,53 @@ docker (docker exec)
 
 # creating inventory groups    
 
+```
+adding systems to groups
+group variables in inventory
+assigning plays to systems and groups
+```
+
+inventory file
+```yaml
+[database]
+database01 ansible_user=ubuntu
+
+[dotcms]
+dotcms01
+dotcms02
+dotcms03
+
+[balancer]
+balancer01
+
+[ubuntu:children]
+database
+dotcms
+
+[ubuntu:vars]
+ansible_user=ubuntu
+
+[alpine:children]
+balancer
+
+[alpine:vars]
+ansible_user=root
+```
+
+then in playbook.yaml
+```yaml
+- hosts: all
+  become: true
+  tasks:  
+
+- hosts: alpihe
+  become: true
+  tasks:  
+
+- hosts: ubuntu 
+  become: true
+  tasks: 
+
+```
 
 
