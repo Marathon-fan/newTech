@@ -135,13 +135,14 @@ FS services the request
 ## summary
 
 ```
+A ticket can only be read by the guys that have the secret key.  
+After being granted a ticket, the client can go forward to ask for service from service providers(like FS, TGS)
+Session means they want to talk to each other. And the talk is encrypted with session key
+Authenticator means asking for authentication
+
 Client uses its username and passwd to gen client secret key
 AS knows client username and passwd and can also gen client secret key
 Except the first tiem client send messages to AS with its username and passwd, all talks are encrypted with session key
-
-Authenticator means asking for authentication
-Session means they want to talk to each other. And the talk is encrypted with session key
-A ticket can only be read by the guys that have the secret key
 
 AS knows TGS secret key and it can encrypt client/TGS session key with it
 
