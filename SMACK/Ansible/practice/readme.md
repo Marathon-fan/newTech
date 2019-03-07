@@ -20,7 +20,7 @@ Not only is this inventory configurable, but you can also use multiple inventory
 ```
 
 **task**   
-At a basic level, a task is nothing more than a call to an ansible module (see Working With Modules).    
+At a basic level, a task is nothing more than a call to an ansible module.    
 Each playbook is composed of one or more 'plays' in a list. The goal of a play is to map a group of hosts to some tasks. 
 
 **handler**    
