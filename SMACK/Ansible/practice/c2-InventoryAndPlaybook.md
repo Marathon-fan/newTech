@@ -292,4 +292,68 @@ then in playbook.yaml
 
 ```
 
+# Controlling Playbook Runs  
+
+```
+Limiting a run to a system or group
+Using tags to limit which tasks run
+```
+
+```sh
+ansible-playbook -i inventory playbook.yaml
+```
+
+using ansible limit command with "-l"
+```
+ansible-playbook -i inventory playbook.yaml -l balancer01
+# so that only group balancer01 will be running ansible tasks
+```
+
+
+add tags to yaml file and then we can limit running tasks with tags
+```yaml
+---
+- hosts: database
+  become: true
+  tasks:
+    - name: install
+      package: name=postgresql state=installed
+    - name: service
+      service: name=postgredql state=started enabled=yes
+      tags: service
+- hosts: dotcms
+  become: true
+  tasks: 
+    - name: install jre
+      package: name=openjdk-8-jre state=installed
+- hosts: balancer
+  become: true
+  tasks:
+    - name: install
+      package: name=haproxy state=install
+    - name: service
+      service: name=haproxy stage=started enabled=yes
+      tags: service                
+```
+
+using tags to control running tasks
+```sh
+ansible-playbook -i inventory playbook.yaml --tags service
+```
+
+using both tags and group to limit tasks
+```sh
+ansible-playbook -i inventory playbook.yaml --tags service -l balancer
+```
+
+# summary   
+
+```
+Ansible inventory and playbook files
+Tasks and handlers
+Configuring inventory
+Inventory groups
+Playbook limits
+```
+
 
