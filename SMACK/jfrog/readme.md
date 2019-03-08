@@ -1,18 +1,26 @@
 
-
 # jfrog   
 
 ## Nexus vs JFrog
-
-
 
 ## install  
 
 ### System Requirements    
 
-```
-JDK
-You must run Artifactory with JDK 8, preferably JDK 8 update 45 and above.
+JDK 8
+```sh
+
+# JDK
+# You must run Artifactory with JDK 8, preferably JDK 8 update 45 and above.
+sudo yum install java-1.8.0
+
+java -XshowSettings:properties -version 2>&1 > /dev/null | grep 'java.home'
+# then add java home to ~/.bash_profile 
+sudo vi ~/.bash_profile 
+# JAVA_HOME
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.amzn2.x86_64/jre
+
+source ~/.bash_profile 
 
 ```
 
@@ -31,14 +39,31 @@ The JVM default values are:
 For a manual installation, modify JAVA_OPTIONS in $ARTIFACTORY_HOME/bin/artifactory.default.
 ```
 
+### AWS HTTP access to EC2 instance  
+```
+in the EC2 instance page, click its "security groups", add the following to Inbound(so that your ip can use http to communicate with the EC2 instance):
+
+type: All TCP
+Protocal: TCP
+Port Range: 0-65535 
+Source: your PC's addr
+```
+
 
 ### Installing Artifactory    
 
 To install Artifactory manually, simply unzip the Artifactory download file to a location on your file system. This will be your $ARTIFACTORY_HOME location.
 ```sh
-sudo unzip jfrog-artifactory-oss-6.8.4.zip 
-```
+sudo unzip jfrog-artifactory-oss-6.8.4.zip   
 
+sudo vi ~/.bash_profile 
+# then add the following line to .bash_profile 
+# jforg
+ARTIFACTORY_HOME=/opt/artifactory-oss-6.8.4
+
+source ~/.bash_profile 
+
+```
 
 No further action is needed.
 
@@ -46,7 +71,7 @@ No further action is needed.
 
 You can run Artifactory manually to see its behavior by directly executing:
 ```sh
-$ARTIFACTORY_HOME/bin/artifactory.sh 
+sudo $ARTIFACTORY_HOME/bin/artifactory.sh 
 ```
 
 The console is locked on the Artifactory process and you can stop it cleanly with Ctrl+C.
@@ -59,16 +84,13 @@ To verify Artifactory is running, you can access it in your browser at:
 
 http://SERVER_DOMAIN:8081/artifactory
 
-For example, if you are testing on your local machine you would use:  http://localhost:8081/artifactory
+For example, if you are testing on your ec2 you would use:  http://EC2PublicIP:8081/artifactory
 
-```
-Installing on Linux, Solaris, or Mac OS
-```
 
 
 ///////////////////
 
-Nexus
+Nexus    
 JFrog
 
 admin:admin
@@ -91,6 +113,4 @@ mvn package
 mvn clean deploy       # gen the project jar package
 
 ```
-
-
 
