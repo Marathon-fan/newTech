@@ -28,6 +28,9 @@
 ```
 client gen client secret key using its userName and passwd 
 client send userName and passwd to AS
+
+In some implementation, this step is like: the client sends its userName and some other information to AS(this information is partially encrypted with the clients passwd)
+In this way, even the first step is with a shared session key(between AS and client) 
 ```
 
 ## step 2    
@@ -142,7 +145,7 @@ Authenticator means asking for authentication
 
 Client uses its username and passwd to gen client secret key
 AS knows client username and passwd and can also gen client secret key
-Except the first tiem client send messages to AS with its username and passwd, all talks are encrypted with session key
+Except the first tiem client send messages to AS with its username and passwd(in a stricter way, even this step is encryped using the client's passwd), all talks are encrypted with session key
 
 AS knows TGS secret key and it can encrypt client/TGS session key with it
 
@@ -161,6 +164,10 @@ AS knows client secret key(it can gen client secret key)
 TGS checks if client ID (from C) = client ID (from D)
 FS checks if client ID (from E) = client ID (from G)
 
+Initially, there are three shared secret keys:
+1 client and AS both know client's passwd(used as the secret key)
+2 AS and TGS both know TGS secret key
+3 TGS and FS both know FS secret key
 ```
 
 # other explains   

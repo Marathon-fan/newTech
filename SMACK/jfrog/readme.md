@@ -85,7 +85,11 @@ To verify Artifactory is running, you can access it in your browser at:
 http://SERVER_DOMAIN:8081/artifactory
 
 For example, if you are testing on your ec2 you would use:  http://EC2PublicIP:8081/artifactory
-
+default userName and password
+```
+Username: admin
+Password: password
+```
 
 
 ///////////////////
@@ -111,6 +115,5 @@ change username and passwd
 ```
 mvn package
 mvn clean deploy       # gen the project jar package
-
 ```
 
