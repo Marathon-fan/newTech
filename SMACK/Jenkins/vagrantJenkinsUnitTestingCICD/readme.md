@@ -93,3 +93,5 @@ EPEL ---- Extra Packages for Enterprise Linux (EPEL).
 
 CodeIgniter ---- an open-source software rapid development web framework, for use in building dynamic web sites with PHP.
 
+MariaDB ---- Here it is used as a MySql client.   
+MariaDB is a community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU GPL. Development is led by some of the original developers of MySQL, who forked it due to concerns over its acquisition by Oracle Corporation
