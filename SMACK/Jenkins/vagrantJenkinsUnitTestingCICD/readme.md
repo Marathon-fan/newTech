@@ -60,7 +60,9 @@ vagrant ssh web
 then we navigate to db by
 ```sh
 vagrant ssh db
-mysql -u ci_user -p -pcipassword -h 192.168.33.30
+mysql -u root -padmin
+
+MariaDB [(none)]> use ci_database  
 
 ```
 
@@ -88,4 +90,6 @@ mysql -u ci_user -p -pcipassword -h 192.168.33.30
 # Abbreviations         
 
 EPEL ---- Extra Packages for Enterprise Linux (EPEL). 
+
+CodeIgniter ---- an open-source software rapid development web framework, for use in building dynamic web sites with PHP.
 
