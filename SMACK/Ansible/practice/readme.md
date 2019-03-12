@@ -35,3 +35,5 @@ Ansible Tower (formerly ‘AWX’) is a web-based solution that makes Ansible ev
 
 Tower allows you to control access to who can access what, even allowing sharing of SSH credentials without someone being able to transfer those credentials. Inventory can be graphically managed or synced with a wide variety of cloud sources. It logs all of your jobs, integrates well with LDAP, and has an amazing browsable REST API. Command line tools are available for easy integration with Jenkins as well. Provisioning callbacks provide great support for autoscaling topologies.
 
+**present/absent**    
+In 2.x installed and removed are deprecated in favor of present and absent and no longer available after Ansible 2.9
