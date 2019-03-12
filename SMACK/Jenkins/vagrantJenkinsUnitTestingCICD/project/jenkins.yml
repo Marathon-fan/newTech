@@ -1,0 +1,31 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name:  Install yum
+      yum:  
+        name:
+          - wget
+          - java-1.8.0-openjdk
+    - name: Download jenkins.repo
+      get_url:
+        url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+    - name: Import Jenkins Key
+      rpm_key:
+        state: present
+        key: https://jenkins-ci.org/redhat/jenkins-ci.org.key
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+    - name: Start & Enable Jenkins
+      systemd:
+        name: jenkins
+        state: started
+        enabled: true
+    - name: Install required packages
+      yum:
+        name:
+          - git
+          - php-pear
+        state: present

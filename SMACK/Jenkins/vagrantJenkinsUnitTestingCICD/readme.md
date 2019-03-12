@@ -70,6 +70,40 @@ MariaDB [(none)]> use ci_database
 
 ## Lab2 - Installing Jenkins   
 
+```sh
+vagrant up jenkins
+
+or
+vagrant provision jenkins
+
+navigate to 192.168.33.40:8080
+
+vagrant ssh jenkins
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword   # to see the passwd  
+
+use UI to install the following plugins:
+1 github plugin
+2 ssh plugin
+3 ssh agent plugin
+
+```
+
+
+```sh
+vagrant ssh 192.168.33.40
+# then install phpunit
+sudo pear upgrade pear
+
+sudo pear channel-discover pear.phpunit.de
+sudo pear channel-discover pear.symfony-project.com
+sudo pear channel-discover pear.symfony.com
+sudo pear channel-discover components.ez.no
+
+sudo pear install --alldeps phpunit/PHPUnit
+
+phpunit
+```
+
 
 ## Lab3 - Deploying Infrastructure   
 
