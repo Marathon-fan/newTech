@@ -88,37 +88,223 @@ use UI to install the following plugins:
 
 ```
 
-
+install junit   
 ```sh
 vagrant ssh 192.168.33.40
 # then install phpunit
-sudo pear upgrade pear
 
-sudo pear channel-discover pear.phpunit.de
-sudo pear channel-discover pear.symfony-project.com
-sudo pear channel-discover pear.symfony.com
-sudo pear channel-discover components.ez.no
-
-sudo pear install --alldeps phpunit/PHPUnit
-
-phpunit
+wget https://phar.phpunit.de/phpunit-6.5.phar
+chmod +x phpunit-6.5.phar
+sudo mv phpunit-6.5.phar /usr/local/bin/phpunit
+phpunit --version
 ```
+
+
 
 
 ## Lab3 - Deploying Infrastructure   
 
+```sh
+vagrant up client  
+vagrant ssh client
+git clone https://github.com/Marathon-fan/VagrantJenkinsUnitTestingCICD.git
+cd VagrantJenkinsUnitTestingCICD/
+cd application/tests      # uses github.com/kenjis/ci-phpunit-test
+
+```
 
 ## Lab4 - Unit Testing     
 
+create a new job using Jenkins   
+```sh
+navigate to 192.168.33.40:8080
+create a new job-> enter an item name->
+set the name to be:
+"project_feature_test"
+
+choose freeStyleProject
+
+SourceCodeManagement-> choose Git
+Repository URL: https://github.com/Marathon-fan/VagrantJenkinsUnitTestingCICD
+Credentials: none
+Branch Specifier (blank for 'any'): */feature
+Build Triggers: Poll SCM
+Schedule: 0 * * * *
+
+Build: add Execute shell-> Command: (using the following cmds)
+"cd application/tests
+/usr/local/bin/phpunit"
+
+
+```
 
 ## Lab5 - Integration Job     
 
+When unit testing passed in the feature branch, it will automatically be pushed into integration branch
+```sh
+create a new item called integration_branch 
 
+choose it as freeStyleProject
+
+SourceCodeManagement-> choose Git
+Repository URL: https://github.com/Marathon-fan/VagrantJenkinsUnitTestingCICD
+add Credentials-- userName, passwd, then add this Credential
+
+Branch Specifier (blank for 'any'): */feature
+Build Triggers: Poll SCM
+Schedule: 0 * * * *
+
+Build Triggers
+Build after other projects are built
+project to watch: project_feature_test
+
+Build: add Execute shell 1-> Command: (using the following cmds)
+"cd application/tests
+phpunit         # assume we will run integration test
+"
+
+Build: add Execute shell 2-> Command: (using the following cmds)
+"git checkout feature
+git pull
+git checkout integration
+git merge feature
+"
+
+Post-build Actions:
+Git Publisher
+  tick "Push Only If Build Succeeds"
+    Branches:
+      Branch to push: integration
+      Target remote name: origin
+```
 
 ## Lab6 - Continuous Delivery     
 
+After the unit testing and integration testing succeed, deploy the changes to testing environment(UAT)    
+
+```sh
+vagrant up webdev
+
+then navigate to http://192.168.33.25/
+```
+
+configure Continuous Delivery   
+```sh
+in Jenkins dashboard, 
+
+create a new item called feature_delivery
+
+choose it as freeStyleProject
+
+SourceCodeManagement-> choose Git
+Repository URL: https://github.com/Marathon-fan/VagrantJenkinsUnitTestingCICD
+Credentials(none)  # as we will not push changes to github
+
+Build Triggers--
+Build after other projects are built
+project to watch: integration_branch    # after the job integration_branch succeeds, 
+
+Build--
+Execute shell script on remote host using ssh
+SSH site: vagrant@192.168.33.25:22  (dashboard-> manage jenkins -> configure system -> ssh remote hosts -> SSH sites: hostname: 192.168.33.25(the host for developers), port:22, Credentials: (add it: the userName:Vagrant, passwd: vagrant), then use this credential vagrant, , also add SSH sites: hostname: 192.168.33.20(the host for developers), port:22, Credentials: vagrant)
+
+Command: 
+"
+cd /var/www/html/CodeIgniter-3.1.5/
+git checkout integration
+git pull
+"
+
+```
+
+```sh 
+vagrant ssh client
+make some changes to the code
+git add *
+git commit to feature branch
+
+if everything succeeds, then the changes will be seen in dev server
+```
+
 
 ## Lab7 - Continuous Deployment     
+**integrate the changes to the master branch, and deploy the item to production env**
+
+create job1-----
+
+```sh
+in Jenkins dashboard, 
+
+create a new item called feature_master_integration      # integrate the code to master branch if all the builds and tests succeed   
+
+choose it as freeStyleProject
+
+SourceCodeManagement-> choose Git
+Repository URL: https://github.com/Marathon-fan/VagrantJenkinsUnitTestingCICD
+Credentials: use the credential so that we can push changes to the master branch
+Branch Specifier (blank for 'any'): */integration
+
+
+
+Build Triggers--
+Build after other projects are built
+project to watch: feature_delivery    # after the job feature_delivery succeeds, then we try to trigger this job(item)
+         tick: Tigger only if build is stable
+
+Build--
+Execute shell 1  
+Command:
+"
+cd application/tests
+phpunit        # test this first
+"   
+
+Execute shell 2
+Command:
+"
+git checkout integration
+git pull
+git checkout master
+git merge integration
+"   
+
+Post-build Actions--
+  Git Publisher:   
+     tick "Push Only if Build Succeeds"
+     Branches: 
+       Branch to push: master
+       Target remote name: origin
+
+```
+
+create job2-----
+
+```sh
+in Jenkins dashboard, 
+
+create a new item called project_deployment      # integrate the code to master branch if all the builds and tests succeed   
+
+copy from feature_delivery  # as this is pretty similar to that job, we copy it and make minor changes
+
+SourceCodeManagement
+  branches to build:  "*/master"
+
+Build Triggers--
+Build after other projects are built
+project to watch: feature_master_integration   
+  tick "Trigger only if builds is stable"
+Execute shell script on remote host using ssh:
+  SSH site: vagrant@192.168.33.25:22    (the production host)
+    
+
+Command: 
+"
+cd /var/www/html/CodeIgniter-3.1.5/
+git checkout integration
+git pull
+"
+
+```
 
 
 # Abbreviations         
@@ -129,3 +315,5 @@ CodeIgniter ---- an open-source software rapid development web framework, for us
 
 MariaDB ---- Here it is used as a MySql client.   
 MariaDB is a community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU GPL. Development is led by some of the original developers of MySQL, who forked it due to concerns over its acquisition by Oracle Corporation
+
+SCM ---- Software Configuration Management. Subversion, CVS, Perforce, ClearCase, Git    
