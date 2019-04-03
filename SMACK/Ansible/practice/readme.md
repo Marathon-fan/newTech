@@ -25,6 +25,9 @@ Each playbook is composed of one or more 'plays' in a list. The goal of a play i
 
 **handler**    
 handlers are just like tasks, but they only run if notified    
+Handlers are lists of tasks, not really any different from regular tasks, that are referenced by a globally unique name, and are notified by notifiers. If nothing notifies a handler, it will not run. Regardless of how many tasks notify a handler, it will run only once, after all of the tasks complete in a particular play.
+
+
 
 **play**   
 a play groups tasks together      
